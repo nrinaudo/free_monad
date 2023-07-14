@@ -1,0 +1,23 @@
+digraph {
+    rankdir=LR
+
+    Start[class="extremity"]
+    Goal[class="extremity"]
+
+
+    A[style="invis"]
+    ChainA[label="Chain[A]" class="goal"]
+    ConsoleA[label="Console[A]" class="start"]
+    ConsoleChainA[label="Console[Chain[A]]"]
+
+    ConsoleA -> ConsoleChainA[label="_.map(Done.apply)"]
+    ConsoleChainA -> ChainA[label="Next"]
+
+    {
+        rank=same
+        ConsoleA -> A[dir="back" class="lift" style="invis"]
+    }
+
+    Start -> ConsoleA[class="start"]
+    ChainA -> Goal[class="goal"]
+}

@@ -1,0 +1,14 @@
+digraph {
+    rankdir=LR
+
+    Start[class="extremity,disabled"]
+    Goal[class="extremity"]
+
+    A[label="A" class="start"]
+    GA[label="G[A]" class="goal"]
+
+    A -> GA[label="pure"]
+
+    Start -> A[class="start"]
+    GA -> Goal[class="goal"]
+}

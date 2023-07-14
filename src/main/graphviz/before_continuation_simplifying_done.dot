@@ -1,0 +1,34 @@
+digraph {
+    rankdir=LR
+
+    cons1[label="::" style="invis"]
+    cons2[label="::" style="invis"]
+    cons3[label="::" style="invis"]
+    nil[label="Nil" style="invis"]
+
+    cons1 -> cons2[style="invis"]
+    cons2 -> cons3[style="invis"]
+    cons3 -> nil[style="invis"]
+
+    print1[label="Print(\"What is your name?\")" class="start"]
+    read[label="Read"]
+    print2[label="Print(\"Hello!\")"]
+    stop[label="Stop"]
+
+    {
+        rank=same
+        cons1 -> print1[style="invis"]
+    }
+    {
+        rank=same
+        cons2 -> read[style="invis"]
+    }
+    {
+        rank=same
+        cons3 -> print2[style="invis"]
+    }
+
+    print1 -> read[label="next"]
+    read -> print2[label="next"]
+    print2 -> stop[label="next"]
+}

@@ -1,0 +1,21 @@
+digraph {
+    rankdir=LR
+
+    Start[class="extremity"]
+    Goal[class="extremity"]
+
+    Unit[group="down" class="disabled"]
+    ChainString[label="Chain[String]" group="down" class="disabled"]
+    ChainUnit[label="Chain[Unit]" group="up" class="start"]
+
+    Unit -> ChainString[label="f" class="disabled"]
+    ChainUnit -> ChainString[label="_.flatMap(f)" style="invis"]
+
+    {
+        rank=same
+        ChainUnit -> Unit[dir="back" class="lift" style="invis"]
+    }
+
+    Start -> ChainUnit[class="start"]
+    ChainString -> Goal[class="goal" style="invis"]
+}

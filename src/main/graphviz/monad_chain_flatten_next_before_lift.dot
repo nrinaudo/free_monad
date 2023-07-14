@@ -1,0 +1,30 @@
+digraph {
+    rankdir=LR
+    Start[class="extremity"]
+    End[class="extremity"]
+
+    ConsoleChainChainA[label="Console[Chain[Chain[A]]]" class="start"]
+    ChainA[label="Chain[A]" class="goal,disabled"]
+    ChainChainA[label="Chain[Chain[A]]"]
+    ChainA2[label="Chain[A]"]
+    ConsoleChainA[label="Console[Chain[A]]"]
+
+
+    ChainChainA -> ChainA2[label="flatten"]
+    ConsoleChainChainA -> ConsoleChainA[label="_.map(_.flatten)" style="invis"]
+    ConsoleChainA -> ChainA[label="Next" class="disabled"]
+
+    {
+        rank=same
+        ConsoleChainChainA -> ChainChainA[class="lift" dir="back" style="invis"]
+    }
+
+    {
+        rank=same
+        ConsoleChainA -> ChainA2[class="lift" dir="back" style="invis"]
+    }
+
+
+    Start -> ConsoleChainChainA[class="start"]
+    ChainA -> End[class="goal,disabled"]
+}
