@@ -1,0 +1,601 @@
+<!Doctype html>
+<html>
+    <head>
+        <title>Placeholder</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <link rel="stylesheet" type="text/css" href="css/style.css"/>
+    </head>
+    <body>
+        <textarea id="source">
+class: center, middle
+
+# Placeholder
+
+[Nicolas Rinaudo] • [@NicolasRinaudo@functional.cafe]
+
+---
+
+class: center, middle
+
+# Placeholder
+
+---
+
+```scala
+enum Console:
+  case Print(msg: String)
+  case Read
+
+```
+
+---
+
+```scala
+def eval(console: Console): Any = console match
+  case Print(msg) => println(msg)
+  case Read       => scala.io.StdIn.readLine
+
+```
+
+Bad return type
+
+---
+
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+  case Read extends Console[String]
+
+```
+
+---
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg) => println(msg)
+  case Read       => scala.io.StdIn.readLine
+
+```
+
+---
+
+```scala
+val program = List(
+  Print("What is your name?"),
+  Read,
+  Print("Hello!")
+)
+
+```
+
+Impossible to pass the result of Read to Print. We need to chain them.
+
+Typically done by a continutation, called once the command has finished running.
+
+---
+
+```scala
+enum Console[A]:
+  case Print(msg: String, next: () => Console[A])
+  case Read(next: String => Console[A])
+
+```
+
+---
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    next()
+  case Read(next) =>
+    val read = scala.io.StdIn.readLine
+    next(read)
+//     next()
+//     ^
+// ⛔ Found:    Console[A]
+//   Required: A
+//     next(read)
+//     ^
+// ⛔ Found:    Console[A]
+//   Required: A
+// 2 errors found
+```
+
+This does not work because we need to return something eventually, and `Console` demands we return a `Console`.
+
+This forces us to relax the type of `Console.`
+
+---
+
+```scala
+enum Console[A]:
+  case Print(msg: String, next: () => A)
+  case Read(next: String => A)
+
+```
+
+---
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    next()
+  case Read(next) =>
+    val read = scala.io.StdIn.readLine
+    next(read)
+
+```
+
+---
+
+```scala
+val program: Console[Console[Console[Unit]]] = Print("What is your name?", () =>
+  Read(name =>
+    Print(s"Hello, $name!", () => ())))
+
+```
+
+This is a very unpleasant type. Recursive things like this are often solved with `Fix`.
+
+---
+
+```scala
+case class Fix[F[_]](unwrap: F[Fix[F]])
+
+```
+
+---
+
+```scala
+val program = Fix(Print("What is your name?", () =>
+  Fix(Read(name =>
+    Fix(Print(s"Hello, $name!", () => name))))))
+//     Fix(Print(s"Hello, $name!", () => name))))))
+//                                       ^
+// ⛔ Found:    (name : String)
+//   Required: Fix[Console.Print]
+// 1 error found
+```
+
+1 step forward, 2 steps back:
+* we've lost the normal form
+* we can't close a sequence, because it always takes a `Fix[Console]`
+
+First, let's allow ourselves to inject a pure value.
+
+---
+
+```scala
+enum Fix[F[_]]:
+  case Pure[F[_], A](a: A) extends Fix[F]
+  case Impure(unwrap: F[Fix[F]])
+
+```
+
+---
+
+```scala
+val program: Fix[Console] = Fix.Impure(Print("What is your name?", () =>
+  Fix.Impure(Read(name =>
+    Fix.Impure(Print(s"Hello, $name!", () => Fix.Pure(name)))))))
+
+```
+
+---
+
+```scala
+def eval(console: Fix[Console]): Unit = console match
+  case Fix.Pure(a) => a
+  case Fix.Impure(Print(msg, next)) =>
+    println(msg)
+    eval(next())
+  case Fix.Impure(Read(next)) =>
+    val read = scala.io.StdIn.readLine
+    eval(next(read))
+//   case Fix.Pure(a) => a
+//                       ^
+// ⛔ A pure expression does nothing in statement position; you may be omitting necessary parentheses
+// 1 error found
+```
+
+This fails because of fatal warnings, but is a good hint that something's wrong: we've lost the return type.
+
+---
+
+```scala
+enum Fix[F[_], A]:
+  case Pure(a: A)
+  case Impure(unwrap: F[Fix[F, A]])
+
+```
+
+---
+
+```scala
+def eval[A](console: Fix[Console, A]): A = console match
+  case Fix.Pure(a) => a
+  case Fix.Impure(Print(msg, next)) =>
+    println(msg)
+    eval(next())
+  case Fix.Impure(Read(next)) =>
+    val read = scala.io.StdIn.readLine
+    eval(next(read))
+
+```
+
+This all appears to work now, but it's frankly not very pleasant. Let's make this nicer.
+I do not like:
+- types
+- boiler plate
+- composition?
+
+---
+
+```scala
+type ConsoleF[A] = Fix[Console, A]
+
+```
+
+---
+
+```scala
+val ask: ConsoleF[String] = Fix.Impure(Print("What is your name?", () =>
+  Fix.Impure(Read(name => Fix.Pure(name)))))
+
+val greet: String => ConsoleF[Unit] = name => Fix.Impure(Print(s"Hello, $name", () => Fix.Pure(())))
+
+```
+
+No obvious way to compose, save maybe from the fact that...
+We're trying to compose F[String] with String => F[Unit]. That certainly looks like flatmap...
+
+---
+
+```scala
+given Monad[ConsoleF] with
+  extension [A](fa: ConsoleF[A])
+    def map[B](f: A => B) = fa match
+      case Fix.Pure(value)   => Fix.Pure(f(value))
+      case Fix.Impure(value) => Fix.Impure(???)
+
+    def flatMap[B](f: A => ConsoleF[B]) = fa match
+      case Fix.Pure(a)       => f(a)
+      case Fix.Impure(value) => Fix.Impure(???)
+
+  extension [A](a: A) def pure = Fix.Pure(a)
+
+```
+
+We really want to call `map` in these `???` parts.
+
+---
+
+```scala
+given Functor[Console] with
+  extension [A](console: Console[A])
+    def map[B](f: A => B) = console match
+      case Print(msg, next) => Print(msg, () => f(next()))
+      case Read(next) => Read(value => f(next(value)))
+
+```
+
+---
+
+```scala
+given Monad[ConsoleF] with
+  extension [A](fa: ConsoleF[A])
+    def map[B](f: A => B) = fa match
+      case Fix.Pure(value)   => Fix.Pure(f(value))
+      case Fix.Impure(value) => Fix.Impure(value.map(_.map(f)))
+
+    def flatMap[B](f: A => ConsoleF[B]) = fa match
+      case Fix.Pure(a)       => f(a)
+      case Fix.Impure(value) => Fix.Impure(value.map(_.flatMap(f)))
+
+  extension [A](a: A) def pure = Fix.Pure(a)
+
+```
+
+Nowhere do we use the fact that we're working with `Console` though. It just works because `ConsoleF` is a `Functor`.
+
+
+---
+
+```scala
+given [F[_]: Functor]: Monad[Fix[F, _]] with
+  extension [A](fa: Fix[F, A])
+    def map[B](f: A => B) = fa match
+      case Fix.Pure(value) => Fix.Pure(f(value))
+      case Fix.Impure(value) => Fix.Impure(value.map(_.map(f)))
+
+    def flatMap[B](f: A => Fix[F, B]) = fa match
+      case Fix.Pure(a)       => f(a)
+      case Fix.Impure(value) => Fix.Impure(value.map(_.flatMap(f)))
+
+  extension [A](a: A) def pure = Fix.Pure(a)
+
+```
+
+There we go: the free monad over a functor.
+
+---
+
+```scala
+enum Free[F[_], A]:
+  case Pure(a: A)
+  case Flatten(unwrap: F[Free[F, A]])
+
+```
+
+---
+
+---
+
+```scala
+val ask: ConsoleF[String] = Free.Flatten(Print("What is your name?", () =>
+  Free.Flatten(Read(name => Free.Pure(name)))))
+
+val greet: String => ConsoleF[Unit] = name => Free.Flatten(Print(s"Hello, $name", () => Free.Pure(())))
+
+val program = for
+  name <- ask
+  _    <- greet(name)
+yield name
+
+```
+
+At this point, composition is working and quite nice, considering.
+What I do not like is:
+* complicated types
+* annoying initialisation
+* evaluation is very Free-centric.
+
+
+First, the initialisation.
+
+
+---
+
+```scala
+object ConsoleF:
+  def print(str: String): ConsoleF[Unit] =
+    Free.Flatten(Print(str, () => Free.Pure(())))
+
+  def read: ConsoleF[String] =
+    Free.Flatten(Read(value => Free.Pure(value)))
+
+```
+
+If we pay attention to the code, a pattern emerges
+
+---
+
+```scala
+object ConsoleF:
+  def print(str: String): ConsoleF[Unit] =
+    Free.Flatten(Print(str, () => ()).map(Free.Pure.apply))
+
+  def read: ConsoleF[String] =
+    Free.Flatten(Read(identity).map(Free.Pure.apply))
+
+```
+
+---
+
+```scala
+enum Free[F[_], A]:
+  case Pure(a: A)
+  case Flatten(unwrap: F[Free[F, A]])
+
+object Free:
+  def lift[F[_]: Functor, A](fa: F[A]): Free[F, A] =
+    Free.Flatten(fa.map(a => Free.Pure(a)))
+
+```
+
+---
+
+```scala
+object ConsoleF:
+  def print(str: String): ConsoleF[Unit] =
+    Free.lift(Print(str, () => ()))
+
+  def read: ConsoleF[String] =
+    Free.lift(Read(identity))
+
+```
+
+---
+
+```scala
+val ask: ConsoleF[String] = for
+  _    <- ConsoleF.print("What is your name?")
+  name <- ConsoleF.read
+yield name
+
+val greet: String => ConsoleF[Unit] =
+  name => ConsoleF.print(s"Hello, $name!")
+
+val program = for
+  name <- ask
+  _    <- greet(name)
+yield name
+
+```
+
+At this point, this is all very nice. Except the evaluation part, which frankly sucks.
+
+---
+
+```scala
+def eval[A](console: ConsoleF[A]): A = console match
+  case Free.Pure(a) => a
+  case Free.Flatten(Print(msg, next)) =>
+    println(msg)
+    eval(next())
+  case Free.Flatten(Read(next)) =>
+    val read = scala.io.StdIn.readLine
+    eval(next(read))
+
+```
+
+If you look at it, there's a pattern.
+
+---
+
+```scala
+def eval[F[_]: Functor, A](fa: Free[F, A], f: F[A] => A): A = fa match
+  case Free.Pure(a) => a
+  case Free.Flatten(value) => f(value.map(i => eval(i, f)))
+
+def handler[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    next()
+  case Read(next) =>
+    next(scala.io.StdIn.readLine())
+
+```
+
+Move `eval` in `Free`.
+
+Note that this is nice, except if you're into effects encoded as monads. In that case, `eval` is very disappointing.
+But - is it not just an effectful implementation with `Id`?
+
+Turns out not quite, we get stuck in the middle because we're manipulation `G[A]` instead of `Id[A]`. We can't work with
+an `F[A] => G[A]`, because we're sometimes working with something other than `A`.
+
+---
+
+```scala
+def evalM[F[_]: Functor, G[_]: Monad, A](fa: Free[F, A], f: F ~> G): G[A] = fa match
+  case Free.Pure(a) => a.pure
+  case Free.Flatten(value) => f(value).flatMap(i => evalM(i, f))
+
+```
+
+---
+
+Consider moving `eval` and `evalM` to `Free`.
+
+We're done. This was painful, and the result is frankly unpleasant. `Console` barely looks like `Console` anymore, and we're exposing a very inelegant continuation.
+
+A hint of how to improve this is in the name: _free monad over a functor_. The continuation is what we need to make `Console` a functor - what if we could somehow write
+the free monad over any type constructor?
+
+One avenue is to realise that if we could make `Free`, we might be able to write the free functor over a type constructor (it's a thing, called coyoneda), and by transitivity get what we wanted.
+
+But there's a massive shortcut, which we'll take now: look at `Free`: it's defined in terms of `pure`, `flatten` and requires a `Functor`. There's another way to define a monad that doesn't require a functor:
+through `pure` and `flatMap`.
+
+Maybe if we rewrote `Free` but using `pure` and `flatMap` instead?
+
+---
+
+```scala
+enum Freer[F[_], A]:
+  case Pure(a: A)
+  case FlatMap[F[_], X, A](fx: F[X], f: X => Freer[F, A]) extends Freer[F, A]
+
+object Freer:
+  def lift[F[_], A](fa: F[A]): Freer[F, A] = Freer.FlatMap(fa, Freer.Pure.apply)
+
+```
+
+---
+
+```scala
+given [F[_]]: Monad[Freer[F, _]] with
+  extension [A](a: A) def pure = Freer.Pure(a)
+
+  extension [A](fa: Freer[F, A])
+    def map[B](f: A => B) = fa match
+      case Freer.Pure(a)              => Freer.Pure(f(a))
+      case Freer.FlatMap(state, cont) => Freer.FlatMap(state, a => cont(a).map(f))
+
+    def flatMap[B](f: A => Freer[F, B]) = fa match
+      case Freer.Pure(a)              => f(a)
+      case Freer.FlatMap(state, cont) => Freer.FlatMap(state, a => cont(a).flatMap(f))
+
+```
+
+---
+
+```scala
+def evalM[F[_]: Monad, G[_]: Monad, A](fa: Freer[F, A], f: F ~> G): G[A] = fa match
+  case Freer.Pure(a)              => a.pure
+  case Freer.FlatMap(value, cont) => f(value).flatMap(x => evalM(cont(x), (f)))
+
+```
+
+---
+
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+  case Read extends Console[String]
+
+```
+
+---
+
+```scala
+type ConsoleF[A] = Freer[Console, A]
+
+object ConsoleF:
+  def print(value: String): ConsoleF[Unit] = Freer.lift(Print(value))
+  val read: ConsoleF[String]               = Freer.lift(Read)
+
+```
+
+---
+
+```scala
+val ask: ConsoleF[String] = for
+  _ <- ConsoleF.print("What is your name?")
+  name <- ConsoleF.read
+yield name
+
+val greet: String => ConsoleF[Unit] = name => ConsoleF.print(s"Hello, $name!")
+
+val program = for
+  name <- ask
+  _    <- greet(name)
+yield name
+
+```
+
+---
+
+```scala
+import scala.util.Try
+
+val handler = new (Console ~> Either[Throwable, _]):
+  override def apply[A](ca: Console[A]) = ca match
+    case Console.Print(value) =>
+      Right(println(value))
+
+    case Console.Read =>
+      Try(scala.io.StdIn.readLine).toEither
+
+```
+
+---
+
+[@NicolasRinaudo@functional.cafe]:https://functional.cafe/@NicolasRinaudo
+[Nicolas Rinaudo]:https://nrinaudo.github.io/
+[Slides]:https://nrinaudo.github.io/adt-not-adt/
+    </textarea>
+    <script src="js/remark.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+        var slideshow = remark.create({
+          highlightStyle: 'github',
+          highlightSpans: true,
+          highlightLines: true
+      });
+    </script>
+  </body>
+</html>
