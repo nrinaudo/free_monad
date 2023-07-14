@@ -1,0 +1,27 @@
+digraph {
+    rankdir=LR
+
+    Start2[class="extremity"]
+    Start1[class="extremity"]
+    Goal1[class="extremity"]
+    Goal2[class="extremity"]
+
+    Unit[class="start"]
+    String[class="start"]
+    A1[label="A"]
+    A2[label="A"]
+    B1[label="B" class="goal"]
+    B2[label="B" class="goal"]
+
+    Unit -> A1[label="next"]
+    A1 -> B1[label="f"]
+
+    String -> A2[label="next"]
+    A2 -> B2[label="f"]
+
+
+    Start1 -> Unit[class="start"]
+    Start2 -> String[class="start"]
+    B1 -> Goal1[class="goal"]
+    B2 -> Goal2[class="goal"]
+}

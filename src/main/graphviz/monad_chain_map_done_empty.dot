@@ -1,0 +1,14 @@
+digraph {
+    rankdir=LR
+    Start[class="extremity"]
+    End[class="extremity"]
+    A[class="start" style="invis"]
+    B[style="invis"]
+    ChainB[label="Chain[B]" class="goal" style="invis"]
+
+    A -> B[label="f" style="invis"]
+    B -> ChainB[label="Done" style="invis"]
+
+    Start -> A[class="start" style="invis"]
+    ChainB -> End[class="goal" style="invis"]
+}

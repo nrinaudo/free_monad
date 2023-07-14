@@ -1,0 +1,15 @@
+digraph {
+    rankdir=LR
+
+    Start[class="extremity"]
+    Goal[class="extremity"]
+    ConsoleA[label="Console[A]"]
+    Unit[class="start"]
+    A[class="goal"]
+
+    Unit -> ConsoleA[label="next"]
+    ConsoleA -> A[label="eval"]
+
+    Start -> Unit[class="start"]
+    A -> Goal[class="goal"]
+}

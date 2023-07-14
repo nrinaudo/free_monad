@@ -1,0 +1,13 @@
+digraph {
+    rankdir=LR
+
+
+    print1[label="Print(\"What is your name?\")" class="start,disabled"]
+    read[label="Read" class="disabled"]
+    print2[label="Print(\"Hello!\")"]
+    stop[label="Stop"]
+
+    print1 -> read[label="next" class="disabled"]
+    read -> print2[label="next" class="disabled"]
+    print2 -> stop[label="next"]
+}
