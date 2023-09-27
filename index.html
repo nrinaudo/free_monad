@@ -1,7 +1,7 @@
 <!Doctype html>
 <html>
     <head>
-        <title>Placeholder</title>
+        <title>The debatably Free monad</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
         <link rel="stylesheet" type="text/css" href="css/style.css"/>
     </head>
@@ -9,7 +9,7 @@
         <textarea id="source">
 class: center, middle
 
-# Placeholder
+# The debatably Free monad
 
 [Nicolas Rinaudo] • [@NicolasRinaudo@functional.cafe]
 
@@ -17,96 +17,1756 @@ class: center, middle
 
 class: center, middle
 
-# Placeholder
+# A simple Console DSL
 
 ---
 
-```scala
-enum Console:
-  case Print(msg: String)
-  case Read
+## The dawn of AI
 
+```text
+What is your name?
+>
 ```
 
 ---
+
+## The dawn of AI
+
+```
+What is your name?
+> Nicolas
+```
+
+---
+
+## The dawn of AI
+
+```
+What is your name?
+> Nicolas
+Hello, Nicolas!
+```
+
+---
+
+## ADT encoding
+
+```scala
+enum Console:
+```
+
+---
+
+## ADT encoding
+
+.diff-add[
+```scala
+enum Console:
+*&#x200B;`  case Print(msg: String)`
+```
+]
+
+---
+
+## ADT encoding
+
+.diff-add[
+```scala
+enum Console:
+  case Print(msg: String)
+*&#x200B;`  case Read`
+```
+]
+
+---
+
+## Basic interpreter
+
+```scala
+def eval(console: Console) = ???
+```
+
+---
+
+## Basic interpreter
+
+.diff-rm[
+```scala
+*def eval(console: Console) = `???`
+```
+]
+
+---
+
+## Basic interpreter
+
+.diff-add[
+```scala
+*def eval(console: Console) = `console match`
+* `case Print(msg) => ???`
+* `case Read       => ???`
+```
+]
+
+---
+
+## Basic interpreter
+
+.diff-rm[
+```scala
+def eval(console: Console) = console match
+* case Print(msg) => `???`
+  case Read       => ???
+```
+]
+
+---
+
+## Basic interpreter
+
+.diff-add[
+```scala
+def eval(console: Console) = console match
+* case Print(msg) => `println(msg)`
+  case Read       => ???
+```
+]
+
+---
+
+## Basic interpreter
+
+.diff-rm[
+```scala
+def eval(console: Console) = console match
+  case Print(msg) => println(msg)
+* case Read       => `???`
+```
+]
+
+---
+
+## Basic interpreter
+
+.diff-add[
+```scala
+def eval(console: Console) = console match
+  case Print(msg) => println(msg)
+* case Read       => `scala.io.StdIn.readLine()`
+```
+]
+
+---
+
+## Basic interpreter
+
+.diff-add[
+```scala
+*def eval(console: Console)`: ???` = console match
+  case Print(msg) => println(msg)
+  case Read       => scala.io.StdIn.readLine()
+```
+]
+
+
+---
+
+## Basic interpreter
+
+```scala
+def eval(console: Console): ??? = console match
+  case Print(msg) => `println(msg)`
+  case Read       => scala.io.StdIn.readLine()
+```
+
+---
+
+## Basic interpreter
+
+```scala
+def eval(console: Console): ??? = console match
+  case Print(msg) => println(msg)
+  case Read       => `scala.io.StdIn.readLine()`
+```
+
+---
+
+## Basic interpreter
+
+.diff-rm[
+```scala
+*def eval(console: Console): `???` = console match
+  case Print(msg) => println(msg)
+  case Read       => scala.io.StdIn.readLine()
+```
+]
+
+---
+
+## Basic interpreter
+
+.diff-add[
+```scala
+*def eval(console: Console): `Any` = console match
+  case Print(msg) => println(msg)
+  case Read       => scala.io.StdIn.readLine()
+```
+]
+
+---
+
+## GADT encoding
+
+.diff-add[
+```scala
+*enum Console`[A]`:
+  case Print(msg: String)
+  case Read
+```
+]
+
+---
+
+## GADT encoding
+
+.diff-add[
+```scala
+enum Console[A]:
+* case Print(msg: String)` extends Console[Unit]`
+  case Read
+```
+]
+
+---
+
+## GADT encoding
+
+.diff-add[
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+* case Read` extends Console[String]`
+```
+]
+
+---
+
+## GADT encoding
 
 ```scala
 def eval(console: Console): Any = console match
   case Print(msg) => println(msg)
-  case Read       => scala.io.StdIn.readLine
-
+  case Read       => scala.io.StdIn.readLine()
 ```
 
-Bad return type
+---
+
+## GADT encoding
+
+.diff-add[
+```scala
+*def eval(console: Console`[A]`): Any = console match
+  case Print(msg) => println(msg)
+  case Read       => scala.io.StdIn.readLine()
+```
+]
 
 ---
+
+## GADT encoding
+
+.diff-add[
+```scala
+*def eval[`A`](console: Console[A]): Any = console match
+  case Print(msg) => println(msg)
+  case Read       => scala.io.StdIn.readLine()
+```
+]
+
+---
+
+## GADT encoding
+
+.diff-rm[
+```scala
+*def eval[A](console: Console[A]): `Any` = console match
+  case Print(msg) => println(msg)
+  case Read       => scala.io.StdIn.readLine()
+```
+]
+
+
+---
+
+## GADT encoding
+
+.diff-add[
+```scala
+*def eval[A](console: Console[A]): `A` = console match
+  case Print(msg) => println(msg)
+  case Read       => scala.io.StdIn.readLine()
+```
+]
+
+---
+
+class: center, middle
+
+# Chaining statements
+
+---
+
+## Naive implementation
+
+.center[![](img/before_continuation_empty.svg)]
+
+```scala
+val program = ???
+```
+
+---
+
+## Naive implementation
+
+.center[![](img/before_continuation_empty.svg)]
+
+.diff-rm[
+```scala
+*val program = `???`
+```
+]
+
+---
+
+## Naive implementation
+
+.center[![](img/before_continuation_step_1.svg)]
+
+.diff-add[
+```scala
+val program =
+* `Print("What is your name?") ::`
+```
+]
+
+---
+
+## Naive implementation
+
+.center[![](img/before_continuation_step_2.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?") ::
+* `Read                        ::`
+```
+]
+
+
+---
+
+## Naive implementation
+
+.center[![](img/before_continuation_step_3.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?") ::
+  Read                        ::
+* `Print("Hello!")             ::`
+```
+]
+
+---
+
+## Naive implementation
+
+.center[![](img/before_continuation_step_4.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?") ::
+  Read                        ::
+  Print("Hello!")             ::
+* `Nil`
+```
+]
+
+---
+
+## Naive implementation
+
+.center[![](img/before_continuation_step_4_hl_print.svg)]
+
+```scala
+val program =
+  Print("What is your name?") ::
+  Read                        ::
+  `Print("Hello!")`             ::
+  Nil
+```
+
+---
+
+## Naive implementation
+
+.center[![](img/before_continuation_step_4_hl_print_read.svg)]
+
+```scala
+val program =
+  Print("What is your name?") ::
+  `Read`                        ::
+  `Print("Hello!")`             ::
+  Nil
+```
+
+---
+
+## Naive implementation
+
+.center[![](img/before_continuation_step_4_hl_conses.svg)]
+
+```scala
+val program =
+  Print("What is your name?") ::
+  Read                        `::`
+  Print("Hello!")             `::`
+  Nil
+```
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_5.svg)]
+
 
 ```scala
 enum Console[A]:
   case Print(msg: String) extends Console[Unit]
   case Read extends Console[String]
+```
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_5_next.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+* case Read`(next: Console[Unit])` extends Console[String]
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_5_next.svg)]
+
+.diff-rm[
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+* case Read(next: Console[`Unit`]) extends Console[String]
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_5_next.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+* case Read(next: Console[`A`]) extends Console[String]
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_5_next.svg)]
+
+.diff-rm[
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+* case Read(next: Console[A]) extends Console[`String`]
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_5_next.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+* case Read(next: Console[A]) extends Console[`A`]
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_6_up.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+  case Read(next: Console[A]) extends Console[A]
+```
+]
+
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_6.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+  case Print(msg: String) extends Console[Unit]
+  case Read(next: Console[A]) extends Console[A]
+```
+]
+
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_6_next.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+* case Print(msg: String`, next: Console[A]`) extends Console[Unit]
+  case Read(next: Console[A]) extends Console[A]
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_6_next.svg)]
+
+.diff-rm[
+```scala
+enum Console[A]:
+* case Print(msg: String, next: Console[A]) extends Console[`Unit`]
+  case Read(next: Console[A]) extends Console[A]
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_step_6_next.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+* case Print(msg: String, next: Console[A]) extends Console[`A`]
+  case Read(next: Console[A]) extends Console[A]
+```
+]
+
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_nil.svg)]
+
+```scala
+enum Console[A]:
+  case Print(msg: String, next: Console[A]) extends Console[A]
+  case Read(next: Console[A]) extends Console[A]
+```
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_stop.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+  case Print(msg: String, next: Console[A]) extends Console[A]
+  case Read(next: Console[A]) extends Console[A]
+* `case Stop extends Console[Unit]`
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_stop_linked.svg)]
+
+```scala
+enum Console[A]:
+  case Print(msg: String, `next: Console[A]`) extends Console[A]
+  case Read(next: Console[A]) extends Console[A]
+  case Stop extends Console[Unit]
+```
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation.svg)]
+
+```scala
+enum Console[A]:
+  case Print(msg: String, next: Console[A]) extends Console[A]
+  case Read(next: Console[A]) extends Console[A]
+  case Stop extends Console[Unit]
 
 ```
 
 ---
+
+## Linked statements
+
+.center[![](img/before_continuation.svg)]
+
+```scala
+enum Console[A]:
+  case Print(msg: String, next: Console[A]) extends `Console[A]`
+  case Read(next: Console[A]) extends `Console[A]`
+  case Stop extends Console[Unit]
+```
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation.svg)]
+
+```scala
+enum `Console[A]`:
+  case Print(msg: String, next: Console[A]) extends Console[A]
+  case Read(next: Console[A]) extends Console[A]
+  case Stop extends Console[Unit]
+```
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation.svg)]
+
+.diff-rm[
+```scala
+enum Console[A]:
+* case Print(msg: String, next: Console[A]) `extends Console[A]`
+* case Read(next: Console[A]) `extends Console[A]`
+  case Stop extends Console[Unit]
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation.svg)]
+
+```scala
+enum Console[A]:
+  case Print(msg: String, next: Console[A])
+  case Read(next: Console[A])
+  case Stop extends Console[Unit]
+
+```
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_simplifying.svg)]
+
+```scala
+val program =
+  Print("What is your name?") ::
+  Read                        ::
+  Print("Hello!")             ::
+  Nil
+```
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_simplifying_nil.svg)]
+
+.diff-rm[
+```scala
+val program =
+  Print("What is your name?") ::
+  Read                        ::
+  Print("Hello!")             ::
+* `Nil`
+```
+]
+
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_simplifying_stop.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?") ::
+  Read                        ::
+  Print("Hello!")             ::
+* `Stop`
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_simplifying_cons_1.svg)]
+
+.diff-rm[
+```scala
+val program =
+* Print("What is your name?"`) ::`
+  Read                        ::
+  Print("Hello!")             ::
+  Stop
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_simplifying_next_1.svg)]
+
+.diff-add[
+```scala
+val program =
+* Print("What is your name?"`,`
+*   Read                      ::
+*   Print("Hello!")           ::
+*   Stop`)`
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_simplifying_cons_2.svg)]
+
+.diff-rm[
+```scala
+val program =
+  Print("What is your name?",
+*   Read                      `::`
+    Print("Hello!")           ::
+    Stop)
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_simplifying_step_2.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?",
+*   Read`(`
+*     Print("Hello!")           ::
+*     Stop)`)`
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_simplifying_cons_3.svg)]
+
+.diff-rm[
+```scala
+val program =
+  Print("What is your name?",
+    Read(
+*     Print("Hello!"`)           ::`
+      Stop))
+```
+]
+
+---
+
+## Linked statements
+
+.center[![](img/before_continuation_simplifying_step_3.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?",
+    Read(
+*     Print("Hello!"`,`
+*       Stop))`)`
+```
+]
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done.svg)]
+
+```scala
+val program =
+  Print("What is your name?",
+    Read(
+      Print("Hello!",
+        Stop)))
+
+```
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_print.svg)]
+
+
+```scala
+val program =
+  Print("What is your name?",
+    Read(
+      `Print("Hello!",`
+        Stop)))
+```
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_read.svg)]
+
+
+```scala
+val program =
+  Print("What is your name?",
+    `Read`(
+      Print("Hello!",
+        Stop)))
+```
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_read.svg)]
+
+.diff-rm[
+```scala
+enum Console[A]:
+  case Print(msg: String, next: Console[A])
+* case Read(`next: Console[A]`)
+  case Stop extends Console[Unit]
+```
+]
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_read.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+  case Print(msg: String, next: Console[A])
+* case Read(`next: String => Console[A]`)
+  case Stop extends Console[Unit]
+```
+]
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_print1.svg)]
+
+.diff-rm[
+```scala
+enum Console[A]:
+* case Print(msg: String, `next: Console[A]`)
+  case Read(next: String => Console[A])
+  case Stop extends Console[Unit]
+```
+]
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_print1.svg)]
+
+.diff-add[
+```scala
+enum Console[A]:
+* case Print(msg: String, `next: () => Console[A]`)
+  case Read(next: String => Console[A])
+  case Stop extends Console[Unit]
+```
+]
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_print1.svg)]
+
+```scala
+val program =
+  Print("What is your name?",
+    Read(
+      Print("Hello!",
+        Stop)))
+```
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_print1.svg)]
+
+.diff-add[
+```scala
+val program =
+* Print("What is your name?", `() =>`
+    Read(
+      Print("Hello!",
+        Stop)))
+```
+]
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_read.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?", () =>
+*   Read(`name =>`
+      Print("Hello!",
+        Stop)))
+```
+]
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_read.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+*     Print(`s`"Hello`, $name`!",
+        Stop)))
+```
+]
+
+---
+
+## Continuations
+
+.center[![](img/before_continuation_simplifying_done_print2.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+*     Print(s"Hello, $name!", `() =>`
+        Stop)))
+```
+]
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_empty.svg)]
 
 ```scala
 def eval[A](console: Console[A]): A = console match
   case Print(msg) => println(msg)
-  case Read       => scala.io.StdIn.readLine
-
+  case Read       => scala.io.StdIn.readLine()
 ```
 
 ---
+
+## Evaluation
+
+.center[![](img/eval_chained_empty.svg)]
+
+.diff-add[
+```scala
+def eval[A](console: Console[A]): A = console match
+* case Print(msg`, next`) => println(msg)
+* case Read`(next)`       => scala.io.StdIn.readLine()
+```
+]
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_empty.svg)]
+
+.diff-rm[
+```scala
+def eval[A](console: Console[A]): A = console match
+* case Print(msg, next) => `println(msg)`
+* case Read(next)       => `scala.io.StdIn.readLine()`
+```
+]
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_empty.svg)]
+
+.diff-add[
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+*   `println(msg)`
+*
+  case Read(next)       =>
+*   `scala.io.StdIn.readLine()`
+```
+]
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_print_build_a.svg)]
 
 ```scala
-val program = List(
-  Print("What is your name?"),
-  Read,
-  Print("Hello!")
-)
+def eval[A](console: Console[A]): `A` = console match
+  case Print(msg, next) =>
+    println(msg)
 
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
 ```
 
-Impossible to pass the result of Read to Print. We need to chain them.
-
-Typically done by a continutation, called once the command has finished running.
-
 ---
+
+## Evaluation
+
+.center[![](img/eval_chained_print_build_eval.svg)]
 
 ```scala
-enum Console[A]:
-  case Print(msg: String, next: () => Console[A])
-  case Read(next: String => Console[A])
+def `eval`[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
 
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
 ```
 
 ---
+
+## Evaluation
+
+.center[![](img/eval_chained_print_build_next.svg)]
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, `next`) =>
+    println(msg)
+
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
+```
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_print.svg)]
+
+.diff-add[
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+*   `eval(next())`
+
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
+```
+]
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_read_build_eval.svg)]
 
 ```scala
 def eval[A](console: Console[A]): A = console match
   case Print(msg, next) =>
     println(msg)
-    next()
-  case Read(next) =>
-    val read = scala.io.StdIn.readLine
-    next(read)
-//     next()
-//     ^
-// ⛔ Found:    Console[A]
-//   Required: A
-//     next(read)
-//     ^
-// ⛔ Found:    Console[A]
-//   Required: A
-// 2 errors found
+    eval(next())
+
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
 ```
 
-This does not work because we need to return something eventually, and `Console` demands we return a `Console`.
-
-This forces us to relax the type of `Console.`
 
 ---
+
+## Evaluation
+
+.center[![](img/eval_chained_read_build_string.svg)]
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next)       =>
+    `scala.io.StdIn.readLine()`
+```
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_read_build_next.svg)]
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(`next`)       =>
+    scala.io.StdIn.readLine()
+```
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_read.svg)]
+
+.diff-add[
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next)       =>
+*   `eval(next(`scala.io.StdIn.readLine()`))`
+```
+]
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_empty.svg)]
+
+.diff-add[
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next)       =>
+    eval(next(scala.io.StdIn.readLine()))
+*
+* `case Stop             =>`
+*   `()`
+```
+]
+
+---
+
+class: center, middle
+
+# Decomposing programs
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing.svg)]
+
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+```
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_ask.svg)]
+
+```scala
+val program =
+  `Print("What is your name?", () =>`
+    `Read(name =>`
+      Print(s"Hello, $name!", () =>
+        Stop)))
+```
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_ask.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+*
+*&#x200B;`val ask =`
+* `Print("What is your name?", () =>`
+*   `Read(name =>`
+```
+]
+
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_ask.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+
+val ask =
+  Print("What is your name?", () =>
+    Read(name => `name))`
+```
+]
+
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_ask.svg)]
+
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+
+val ask =
+  `Print`("What is your name?", () =>
+    Read(name => name))
+```
+
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_ask.svg)]
+
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+
+val ask =
+  Print("What is your name?", () =>
+    Read(name => `name`))
+```
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_ask.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+
+*val ask`: Console[String]` =
+  Print("What is your name?", () =>
+    Read(name => name))
+```
+]
+
+---
+
+
+## Decomposing program
+
+.center[![](img/decomposing_greet.svg)]
+
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(`name =>`
+      `Print(s"Hello, $name!", () =>`
+        `Stop)`))
+
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+```
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_greet.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+*
+*&#x200B;`val greet =`
+* `name =>`
+*   `Print(s"Hello, $name!", () =>`
+*     `Stop)`
+```
+]
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_greet.svg)]
+
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet =
+  `name` =>
+    Print(s"Hello, $name!", () =>
+      Stop)
+```
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_greet.svg)]
+
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet =
+  name =>
+    `Print`(s"Hello, $name!", () =>
+      Stop)
+```
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_greet.svg)]
+
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet =
+  name =>
+    Print(s"Hello, $name!", () =>
+      `Stop`)
+```
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_greet.svg)]
+
+.diff-add[
+```scala
+val program =
+  Print("What is your name?", () =>
+    Read(name =>
+      Print(s"Hello, $name!", () =>
+        Stop)))
+
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+*val greet`: String => Console[Unit]` =
+  name =>
+    Print(s"Hello, $name!", () =>
+      Stop)
+```
+]
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing.svg)]
+
+.diff-rm[
+```scala
+*&#x200B;`val program =`
+* `Print("What is your name?", () =>`
+*   `Read(name =>`
+*     `Print(s"Hello, $name!", () =>`
+*       `Stop)))`
+*
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[Unit] =
+  name =>
+    Print(s"Hello, $name!", () =>
+      Stop)
+```
+]
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_done.svg)]
+
+```scala
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+     Stop)
+```
+
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_done.svg)]
+
+```scala
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => `name`))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+     Stop)
+```
+
+---
+
+## Decomposing program
+
+.center[![](img/decomposing_done.svg)]
+
+```scala
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => `name`))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+     Stop)
+// ⛔ Found:    (name : String)
+//   Required: Console[A]
+```
+---
+
+## Unconstraining next
+
+.diff-rm[
+```scala
+enum Console[A]:
+* case Print(msg: String, next: () => `Console[A]`)
+* case Read(next: String => `Console[A]`)
+  case Stop extends Console[Unit]
+```
+]
+
+---
+
+## Unconstraining next
+
+.diff-add[
+```scala
+enum Console[A]:
+* case Print(msg: String, next: () => `A`)
+* case Read(next: String => `A`)
+  case Stop extends Console[Unit]
+```
+]
+
+---
+
+## Unconstraining next
+
+.diff-rm[
+```scala
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+*    `Stop`)
+```
+]
+
+---
+
+## Unconstraining next
+
+.diff-add[
+```scala
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+*    `()`)
+```
+]
+
+---
+
+## Unconstraining next
+
+```scala
+val ask: Console[String] =
+  `Print`("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+     ())
+```
+
+---
+
+## Unconstraining next
+
+```scala
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    `Read`(name => name))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+     ())
+```
+
+---
+
+## Unconstraining next
+
+```scala
+val ask: Console[String] =
+  Print("What is your name?", () =>
+    Read(name => `name`))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+     ())
+```
+
+---
+
+## Unconstraining next
+
+.diff-rm[
+```scala
+*val ask: `Console[String]` =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+     ())
+```
+]
+
+---
+
+## Unconstraining next
+
+.diff-add[
+```scala
+*val ask: `Console[Console[String]]` =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+     ())
+```
+]
+
+---
+
+## Simplifying Console
+
+```scala
+val ask: Console[Console[String]] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+     ())
+
+```
+
+---
+
+## Simplifying Console
+
+```scala
+enum Console[A]:
+  case Print(msg: String, next: () => A)
+  case Read(next: String => A)
+  `case Stop extends Console[Unit]`
+```
+
+---
+
+## Simplifying Console
+
+.diff-rm[
+```scala
+enum Console[A]:
+  case Print(msg: String, next: () => A)
+  case Read(next: String => A)
+* `case Stop extends Console[Unit]`
+```
+]
+
+---
+
+## Simplifying Console
 
 ```scala
 enum Console[A]:
@@ -117,362 +1777,2808 @@ enum Console[A]:
 
 ---
 
+## Evaluation
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    eval(next(in))
+
+  case Stop => ()
+```
+
+---
+
+## Evaluation
+
+.diff-rm[
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    eval(next(in))
+*
+* `case Stop => ()`
+```
+]
+
+
+---
+
+## Evaluation
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    eval(next(in))
+```
+
+---
+
+## Evaluation
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(`next()`)
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    eval(`next(in)`)
+```
+
+---
+
+## Evaluation
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    `eval`(next())
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    `eval`(next(in))
+```
+
+---
+
+## Evaluation
+
+```scala
+def eval[A](console: `Console[A]`): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    eval(next(in))
+```
+
+---
+
+## Evaluation
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(`next()`)
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    eval(`next(in)`)
+// ⛔ Found:    A
+//   Required: Console[A]
+```
+
+---
+
+## Evaluation
+
+```scala
+def eval[A](console: Console[A]): `A` = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    eval(next(in))
+```
+
+---
+
+## Evaluation
+
+.diff-rm[
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+*   `eval(`next()`)`
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+*   `eval(`next(in)`)`
+```
+]
+
+---
+
+## Evaluation
+
 ```scala
 def eval[A](console: Console[A]): A = console match
   case Print(msg, next) =>
     println(msg)
     next()
+
   case Read(next) =>
-    val read = scala.io.StdIn.readLine
-    next(read)
+    val in = scala.io.StdIn.readLine()
+    next(in)
 
 ```
 
 ---
 
-```scala
-val program: Console[Console[Console[Unit]]] = Print("What is your name?", () =>
-  Read(name =>
-    Print(s"Hello, $name!", () => ())))
-
-```
-
-This is a very unpleasant type. Recursive things like this are often solved with `Fix`.
-
----
+## Chained evaluation
 
 ```scala
-case class Fix[F[_]](unwrap: F[Fix[F]])
+val ask: Console[Console[String]] =
+  Print("What is your name?", () =>
+    Read(name => name))
 
-```
-
----
-
-```scala
-val program = Fix(Print("What is your name?", () =>
-  Fix(Read(name =>
-    Fix(Print(s"Hello, $name!", () => name))))))
-//     Fix(Print(s"Hello, $name!", () => name))))))
-//                                       ^
-// ⛔ Found:    (name : String)
-//   Required: Fix[Console.Print]
-// 1 error found
-```
-
-1 step forward, 2 steps back:
-* we've lost the normal form
-* we can't close a sequence, because it always takes a `Fix[Console]`
-
-First, let's allow ourselves to inject a pure value.
-
----
-
-```scala
-enum Fix[F[_]]:
-  case Pure[F[_], A](a: A) extends Fix[F]
-  case Impure(unwrap: F[Fix[F]])
+val greet: String => Console[Unit] =
+  name =>
+    Print(s"Hello, $name!", () =>
+      ())
 
 ```
 
 ---
 
-```scala
-val program: Fix[Console] = Fix.Impure(Print("What is your name?", () =>
-  Fix.Impure(Read(name =>
-    Fix.Impure(Print(s"Hello, $name!", () => Fix.Pure(name)))))))
+## Chained evaluation
 
+```scala
+val ask: Console[`Console[String]`] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[`Unit`] =
+  name =>
+    Print(s"Hello, $name!", () =>
+      ())
 ```
 
 ---
 
+## Chained evaluation
+
 ```scala
-def eval(console: Fix[Console]): Unit = console match
-  case Fix.Pure(a) => a
-  case Fix.Impure(Print(msg, next)) =>
+enum Chain:
+```
+
+---
+
+## Chained evaluation
+
+.diff-add[
+```scala
+enum Chain:
+* `case Done(a: A)`
+```
+]
+
+---
+
+## Chained evaluation
+
+.diff-add[
+```scala
+*enum Chain`[A]`:
+  case Done(a: A)
+```
+]
+
+---
+
+## Chained evaluation
+
+.diff-add[
+```scala
+enum Chain[A]:
+* `case Next(value: Console[???])`
+  case Done(a: A)
+```
+]
+
+---
+
+## Chained evaluation
+
+.diff-rm[
+```scala
+enum Chain[A]:
+* case Next(value: Console[`???`])
+  case Done(a: A)
+```
+]
+
+---
+
+## Chained evaluation
+
+.diff-add[
+```scala
+enum Chain[A]:
+* case Next(value: Console[`Chain[A]`])
+  case Done(a: A)
+```
+]
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_empty.svg)]
+
+```scala
+def evalChain[A](chain: Chain[A]): A = ???
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_empty.svg)]
+
+```scala
+def evalChain[A](chain: `Chain[A]`): A = ???
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_empty.svg)]
+
+```scala
+def evalChain[A](chain: Chain[A]): `A` = ???
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_empty.svg)]
+
+.diff-rm[
+```scala
+*def evalChain[A](chain: Chain[A]): A = `???`
+```
+]
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_empty.svg)]
+
+.diff-add[
+```scala
+*def evalChain[A](chain: Chain[A]): A = `chain match`
+* `case Done(a)       => ???`
+* `case Next(console) => ???`
+```
+]
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_empty.svg)]
+
+.diff-rm[
+```scala
+def evalChain[A](chain: Chain[A]): A = chain match
+* case Done(a)       => `???`
+  case Next(console) => ???
+```
+]
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_empty.svg)]
+
+.diff-add[
+```scala
+def evalChain[A](chain: Chain[A]): A = chain match
+* case Done(a)       => `a`
+  case Next(console) => ???
+```
+]
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_empty.svg)]
+
+```scala
+def evalChain[A](chain: Chain[A]): A = chain match
+  case Done(a)       => a
+  case Next(console) => `???`
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_console.svg)]
+
+```scala
+def evalChain[A](chain: Chain[A]): A = chain match
+  case Done(a)       => a
+  case Next(`console`) => ???
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_a.svg)]
+
+```scala
+def evalChain[A](chain: Chain[A]): `A` = chain match
+  case Done(a)       => a
+  case Next(console) => ???
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_evalChain.svg)]
+
+```scala
+def `evalChain`[A](chain: `Chain[A]`): `A` = chain match
+  case Done(a)       => a
+  case Next(console) => ???
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_console_to_chain.svg)]
+
+```scala
+def evalChain[A](chain: Chain[A]): A = chain match
+  case Done(a)       => a
+  case Next(console) => ???
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_eval.svg)]
+
+
+```scala
+def `eval`[A](console: `Console[A]`): `A` = console match
+  case Print(msg, next) =>
     println(msg)
-    eval(next())
-  case Fix.Impure(Read(next)) =>
-    val read = scala.io.StdIn.readLine
-    eval(next(read))
-//   case Fix.Pure(a) => a
-//                       ^
-// ⛔ A pure expression does nothing in statement position; you may be omitting necessary parentheses
-// 1 error found
+    next()
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    next(in)
 ```
 
-This fails because of fatal warnings, but is a good hint that something's wrong: we've lost the return type.
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain.svg)]
+
+.diff-rm[
+```scala
+def evalChain[A](chain: Chain[A]): A = chain match
+  case Done(a)       => a
+* case Next(console) => `???`
+```
+]
 
 ---
+
+## Chained evaluation
+
+.center[![](img/evalChain.svg)]
+
+.diff-add[
+```scala
+def evalChain[A](chain: Chain[A]): A = chain match
+  case Done(a)       => a
+* case Next(console) => `evalChain(eval(console))`
+```
+]
+
+---
+
+## Decomposed program
 
 ```scala
-enum Fix[F[_], A]:
-  case Pure(a: A)
-  case Impure(unwrap: F[Fix[F, A]])
+val ask: Console[Console[String]] =
+  Print("What is your name?", () =>
+    Read(name => name))
 
+val greet: String => Console[Unit] =
+  name =>
+    Print(s"Hello, $name!", () =>
+      ())
 ```
 
 ---
+
+## Decomposed program
+
+.diff-rm[
+```scala
+*val ask: `Console[Console[String]]` =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+*val greet: String => `Console[Unit]` =
+  name =>
+    Print(s"Hello, $name!", () =>
+      ())
+```
+]
+
+---
+
+## Decomposed program
+
+.diff-add[
+```scala
+*val ask: `Chain[String]` =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+*val greet: String => `Chain[Unit]` =
+  name =>
+    Print(s"Hello, $name!", () =>
+      ())
+```
+]
+
+---
+
+## Decomposed program
+
+.diff-rm[
+```scala
+val ask: Chain[String] =
+  Print("What is your name?", () =>
+*   Read(name => `name`))
+
+val greet: String => Chain[Unit] =
+  name =>
+    Print(s"Hello, $name!", () =>
+*     `()`)
+```
+]
+
+---
+
+## Decomposed program
+
+.diff-add[
+```scala
+val ask: Chain[String] =
+  Print("What is your name?", () =>
+*   Read(name => `Done(name)`))
+
+val greet: String => Chain[Unit] =
+  name =>
+    Print(s"Hello, $name!", () =>
+*     `Done(())`)
+```
+]
+
+---
+
+## Decomposed program
+
+.diff-rm[
+```scala
+val ask: Chain[String] =
+  `Print`("What is your name?", () =>
+    `Read`(name => Done(name)))
+
+val greet: String => Chain[Unit] =
+  name =>
+    `Print`(s"Hello, $name!", () =>
+      Done(()))
+```
+]
+
+---
+
+## Decomposed program
+
+.diff-add[
+```scala
+val ask: Chain[String] =
+  `Next(Print`("What is your name?", () =>
+    `Next(Read`(name => Done(name)))`))`
+
+val greet: String => Chain[Unit] =
+  name =>
+    `Next(Print`(s"Hello, $name!", () =>
+      Done(()))`)`
+```
+]
+
+---
+
+class: center, middle
+
+# Composing programs
+
+
+---
+
+## Composing program
+
+.center[![](img/chain_ask_greet_flatmap_empty.svg)]
 
 ```scala
-def eval[A](console: Fix[Console, A]): A = console match
-  case Fix.Pure(a) => a
-  case Fix.Impure(Print(msg, next)) =>
-    println(msg)
-    eval(next())
-  case Fix.Impure(Read(next)) =>
-    val read = scala.io.StdIn.readLine
-    eval(next(read))
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
 
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
 ```
 
-This all appears to work now, but it's frankly not very pleasant. Let's make this nicer.
-I do not like:
-- types
-- boiler plate
-- composition?
+---
+
+## Composing program
+
+.center[![](img/chain_ask_greet_flatmap_empty.svg)]
+
+.diff-add[
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
+
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
+
+*&#x200B;`val program: Chain[Unit] =`
+* `???`
+```
+]
+
 
 ---
+
+## Composing statements
+
+.center[![](img/chain_ask_greet_flatmap_before_hl_ask.svg)]
 
 ```scala
-type ConsoleF[A] = Fix[Console, A]
+val ask: `Chain[String]` =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
 
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
+
+val program: Chain[Unit] =
+  ???
 ```
 
 ---
+
+## Composing statements
+
+.center[![](img/chain_ask_greet_flatmap_before_hl_program.svg)]
 
 ```scala
-val ask: ConsoleF[String] = Fix.Impure(Print("What is your name?", () =>
-  Fix.Impure(Read(name => Fix.Pure(name)))))
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
 
-val greet: String => ConsoleF[Unit] = name => Fix.Impure(Print(s"Hello, $name", () => Fix.Pure(())))
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
 
+val program: `Chain[Unit]` =
+  ???
 ```
 
-No obvious way to compose, save maybe from the fact that...
-We're trying to compose F[String] with String => F[Unit]. That certainly looks like flatmap...
-
 ---
+
+## Composing statements
+
+.center[![](img/chain_ask_greet_flatmap_before_hl_greet.svg)]
 
 ```scala
-given Monad[ConsoleF] with
-  extension [A](fa: ConsoleF[A])
-    def map[B](f: A => B) = fa match
-      case Fix.Pure(value)   => Fix.Pure(f(value))
-      case Fix.Impure(value) => Fix.Impure(???)
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
 
-    def flatMap[B](f: A => ConsoleF[B]) = fa match
-      case Fix.Pure(a)       => f(a)
-      case Fix.Impure(value) => Fix.Impure(???)
+val greet: `String => Chain[Unit]` =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
 
-  extension [A](a: A) def pure = Fix.Pure(a)
-
+val program: Chain[Unit] =
+  ???
 ```
 
-We really want to call `map` in these `???` parts.
+---
+
+## Composing statements
+
+.center[![](img/chain_ask_greet_flatmap_before.svg)]
+
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
+
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
+
+val program: Chain[Unit] =
+  ???
+```
 
 ---
+
+## Composing statements
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
+
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
+
+val program: Chain[Unit] =
+  ???
+```
+
+---
+
+## Composing statements
+
+.center[![](img/chain_ask_greet_flatmap_hl_flatmap.svg)]
+
+
+.diff-rm[
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
+
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
+
+val program: Chain[Unit] =
+* `???`
+```
+]
+
+---
+
+## Composing statements
+
+.center[![](img/chain_ask_greet_flatmap_hl_flatmap.svg)]
+
+
+.diff-add[
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
+
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
+
+val program: Chain[Unit] =
+* `ask.flatMap(greet)`
+```
+]
+
+---
+
+## Chain as a Monad
+
+```scala
+given `Monad[Chain]` with
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = ???
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+
+  extension [A](a: A)
+    def pure: Chain[A] = ???
+```
+
+---
+
+## Chain as a Monad
+
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+    def `map`[B](f: A => B): Chain[B] = ???
+
+    def `flatMap`[B](f: A => Chain[B]): Chain[B] = ???
+
+  extension [A](a: A)
+    def `pure`: Chain[A] = ???
+```
+
+---
+
+## Chain as a Monad
+
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = ???
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+
+* extension [A](a: A)
+*   def pure: Chain[A] = ???
+```
+
+
+---
+
+## Chain.pure
+
+.center[![](img/monad_chain_pure_empty.svg)]
+
+```scala
+extension [A](a: A)
+  def pure: Chain[A] = ???
+```
+
+---
+
+## Chain.pure
+
+.center[![](img/monad_chain_pure_hl_a.svg)]
+
+```scala
+extension [A](a: `A`)
+  def pure: Chain[A] = ???
+```
+
+---
+
+## Chain.pure
+
+.center[![](img/monad_chain_pure_hl_fix.svg)]
+
+```scala
+extension [A](a: A)
+  def pure: `Chain[A]` = ???
+```
+
+---
+
+## Chain.pure
+
+.center[![](img/monad_chain_pure_no_link.svg)]
+
+.diff-rm[
+```scala
+extension [A](a: A)
+* def pure: Chain[A] = `???`
+```
+]
+
+---
+
+## Chain.pure
+
+.center[![](img/monad_chain_pure.svg)]
+
+.diff-add[
+```scala
+extension [A](a: A)
+* def pure: Chain[A] = `Done(a)`
+```
+]
+
+---
+
+## Chain.pure
+
+.diff-rm[
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = ???
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+
+  extension [A](a: A)
+*   def pure: Chain[A] = `???`
+```
+]
+
+---
+
+## Chain.pure
+
+.diff-add[
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = ???
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+
+  extension [A](a: A)
+*   def pure: Chain[A] = `Done(a)`
+```
+]
+
+---
+
+## Chain.map
+
+```scala
+given Monad[Chain] with
+* extension [A](chain: Chain[A])
+*   def map[B](f: A => B): Chain[B] = ???
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+
+---
+
+## Chain.map
+
+.center[![](img/monad_consolef_pure_map_empty.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = ???
+```
+
+---
+
+## Chain.map
+
+.center[![](img/monad_consolef_pure_map_empty.svg)]
+
+```scala
+extension [A](`chain: Chain[A]`)
+  def map[B](f: A => B): Chain[B] = ???
+```
+
+
+---
+
+## Chain.map
+
+.center[![](img/monad_consolef_pure_map_empty.svg)]
+
+.diff-rm[
+```scala
+extension [A](chain: Chain[A])
+* def map[B](f: A => B): Chain[B] = `???`
+```
+]
+
+---
+
+## Chain.map
+
+.center[![](img/monad_consolef_pure_map_empty.svg)]
+
+.diff-add[
+```scala
+extension [A](chain: Chain[A])
+* def map[B](f: A => B): Chain[B] = `chain match`
+*   `case Done(a)  => ???`
+*   `case Next(ca) => ???`
+```
+]
+
+---
+
+## Chain.map (Done)
+
+.center[![](img/monad_consolef_pure_map_a.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(`a`)  => ???
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Done)
+
+.center[![](img/monad_consolef_pure_map_fix.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): `Chain[B]` = chain match
+    case Done(a)  => ???
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Done)
+
+.center[![](img/monad_consolef_pure_map_f.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: `A => B`): Chain[B] = chain match
+    case Done(a)  => ???
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Done)
+
+.center[![](img/monad_consolef_pure_map_before.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => ???
+    case Next(ca) => ???
+```
+
+
+---
+
+## Chain.map (Done)
+
+.center[![](img/monad_consolef_pure_map_pure.svg)]
+
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => ???
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Done)
+
+.center[![](img/monad_consolef_pure_map.svg)]
+
+.diff-rm[
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+*   case Done(a)  => `???`
+    case Next(ca) => ???
+```
+]
+
+---
+
+## Chain.map (Done)
+
+.center[![](img/monad_consolef_pure_map.svg)]
+
+.diff-add[
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+*   case Done(a)  => `Done(f(a))`
+    case Next(ca) => ???
+```
+]
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_start.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+    case Next(`ca`) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_goal.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): `Chain[B]` = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_f.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: `A => B`): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_f.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def `map`[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_f.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: `A => B`): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_lift_f.svg)]
+
+```scala
+extension [A](chain: `Chain[A]`)
+  def map[B](f: A => B): `Chain[B]` = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_hl_goal.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): `Chain[B]` = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_impure.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_before_lift.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_lift.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_lifted.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_solution.svg)]
+
+.diff-rm[
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+*   case Next(ca) => `???`
+```
+]
+
+---
+
+## Chain.map (Next)
+
+.center[![](img/monad_consolef_impure_map_solution.svg)]
+
+.diff-add[
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+*   case Next(ca) => `Next(ca.map(_.map(f)))`
+```
+]
+
+---
+
+## Chain.map
+
+.diff-rm[
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+*   def map[B](f: A => B): Chain[B] = `???`
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+]
+
+---
+
+## Chain.map
+
+.diff-add[
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+*   def map[B](f: A => B): Chain[B] = `chain match`
+*     `case Done(a)  => Done(f(a))`
+*     `case Next(ca) => Next(ca.map(_.map(f)))`
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+]
+
+---
+
+## Chain.flatMap
+
+```scala
+given Monad[Chain] with
+* extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
+
+*   def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+
+---
+
+## Chain.flatMap
+
+.center[![](img/monad_consolef_pure_flatMap.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+```
+
+
+---
+
+## Chain.flatMap
+
+.center[![](img/monad_consolef_pure_flatMap.svg)]
+
+.diff-rm[
+```scala
+extension [A](chain: Chain[A])
+* def flatMap[B](f: A => Chain[B]): Chain[B] = `???`
+```
+]
+
+---
+
+## Chain.flatMap
+
+.center[![](img/monad_consolef_pure_flatMap.svg)]
+
+.diff-add[
+```scala
+extension [A](chain: Chain[A])
+* def flatMap[B](f: A => Chain[B]): Chain[B] = `chain match`
+*   `case Done(a)  => ???`
+*   `case Next(ca) => ???`
+```
+]
+
+---
+
+## Chain.flatMap (Done)
+
+.center[![](img/monad_consolef_pure_flatMap.svg)]
+
+.diff-rm[
+```scala
+extension [A](chain: Chain[A])
+  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
+*   case Done(a)  => `???`
+    case Next(ca) => ???
+```
+]
+
+---
+
+## Chain.flatMap (Done)
+
+.center[![](img/monad_consolef_pure_flatMap.svg)]
+
+.diff-add[
+```scala
+extension [A](chain: Chain[A])
+  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
+*   case Done(a)  => `f(a)`
+    case Next(ca) => ???
+```
+]
+
+---
+
+## Chain.flatMap (Next)
+
+.center[![](img/monad_consolef_impure_flatMap_before_functor.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
+    case Done(a)  => f(a)
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.flatMap (Next)
+
+.center[![](img/monad_consolef_impure_flatMap.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
+    case Done(a)  => f(a)
+    case Next(ca) => Next(ca.map(_.flatMap(f)))
+```
+
+---
+
+## Chain.flatMap (Next)
+
+.diff-rm[
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
+
+*   def flatMap[B](f: A => Chain[B]): Chain[B] = `???`
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+]
+
+---
+
+## Chain.flatMap (Next)
+
+.diff-add[
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
+
+*   def flatMap[B](f: A => Chain[B]): Chain[B] = `chain match`
+*     `case Done(a)  => f(a)`
+*     `case Next(ca) => Next(ca.map(_.flatMap(f)))`
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+]
+
+---
+
+## Console as a Functor
+
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(`ca.map`(_.map(f)))
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
+      case Done(a)  => f(a)
+      case Next(ca) => Next(`ca.map`(_.flatMap(f)))
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+
+---
+
+## Console as a Functor
 
 ```scala
 given Functor[Console] with
   extension [A](console: Console[A])
     def map[B](f: A => B) = console match
-      case Print(msg, next) => Print(msg, () => f(next()))
-      case Read(next) => Read(value => f(next(value)))
-
+      case Print(msg, next) => Print(msg, next andThen f)
+      case Read(next)       => Read(next andThen f)
+// there were 1 deprecation warning(s); re-run with -deprecation for details
 ```
 
 ---
+
+class: center, middle
+
+# Composing atomic statements
+
+---
+
+## Atomic statements
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
 
 ```scala
-given Monad[ConsoleF] with
-  extension [A](fa: ConsoleF[A])
-    def map[B](f: A => B) = fa match
-      case Fix.Pure(value)   => Fix.Pure(f(value))
-      case Fix.Impure(value) => Fix.Impure(value.map(_.map(f)))
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
 
-    def flatMap[B](f: A => ConsoleF[B]) = fa match
-      case Fix.Pure(a)       => f(a)
-      case Fix.Impure(value) => Fix.Impure(value.map(_.flatMap(f)))
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
 
-  extension [A](a: A) def pure = Fix.Pure(a)
-
+val program: Chain[Unit] =
+  ask.flatMap(greet)
 ```
 
-Nowhere do we use the fact that we're working with `Console` though. It just works because `ConsoleF` is a `Functor`.
-
-
 ---
+
+## Atomic statements
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
 
 ```scala
-given [F[_]: Functor]: Monad[Fix[F, _]] with
-  extension [A](fa: Fix[F, A])
-    def map[B](f: A => B) = fa match
-      case Fix.Pure(value) => Fix.Pure(f(value))
-      case Fix.Impure(value) => Fix.Impure(value.map(_.map(f)))
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    `Next(Read(name => Done(name)))`))
 
-    def flatMap[B](f: A => Fix[F, B]) = fa match
-      case Fix.Pure(a)       => f(a)
-      case Fix.Impure(value) => Fix.Impure(value.map(_.flatMap(f)))
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
 
-  extension [A](a: A) def pure = Fix.Pure(a)
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+
+---
+
+## Atomic statements
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
+
+val greet: String => Chain[Unit] =
+  name =>
+    `Next(Print(s"Hello, $name!", () =>`
+      `Done(())))`
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+
+---
+
+## Atomic print
+
+.center[![](img/liftChain_empy.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(Print(msg, () => Done(())))
+```
+
+---
+
+## Atomic print
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+```scala
+def print(`msg: String`): Chain[Unit] =
+  Next(Print(msg, () => Done(())))
+```
+
+---
+
+## Atomic print
+
+.center[![](img/liftChain_empy.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  `Next(Print(msg, () => Done(())))`
+```
+
+
+---
+
+## Atomic print
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+.diff-rm[
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
+
+val greet: String => Chain[Unit] =
+  name =>
+*   `Next(Print(s"Hello, $name!", () =>`
+*     `Done(())))`
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+]
+
+---
+
+## Atomic print
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+.diff-add[
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
+
+val greet: String => Chain[Unit] =
+  name =>
+*   `print(s"Hello, $name")`
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+]
+
+---
+
+## Atomic read
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    `Next(Read(name => Done(name)))`))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+
+---
+
+## Atomic read
+
+.center[![](img/liftChain_empy.svg)]
+
+.diff-add[
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(Print(msg, () => Done(())))
+*
+*&#x200B;`def read: Chain[String] =`
+* `Next(Read(str => Done(str)))`
+```
+]
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_empy.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(Print(msg, () => Done(())))
+
+def read: Chain[String] =
+  Next(Read(str => Done(str)))
+```
+
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_building_f.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(Print(msg, `() => Done(())`))
+
+def read: Chain[String] =
+  Next(Read(`str => Done(str)`))
+```
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_building_start.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(`Print(`msg, () => Done(())`)`)
+
+def read: Chain[String] =
+  Next(`Read(`str => Done(str)`)`)
+```
+
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_building_goal.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(`Print(msg, () => Done(()))`)
+
+def read: Chain[String] =
+  Next(`Read(str => Done(str))`)
+```
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_building_lift.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(Print(msg, () => Done(())))
+
+def read: Chain[String] =
+  Next(Read(str => Done(str)))
+```
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(Print(msg, () => Done(())))
+
+def read: Chain[String] =
+  Next(Read(str => Done(str)))
+```
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain.svg)]
+
+.diff-rm[
+```scala
+def print(msg: String): Chain[Unit] =
+* Next(Print(msg, () => `Done(())`))
+
+def read: Chain[String] =
+* Next(Read(str => `Done(str)`))
+```
+]
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain.svg)]
+
+.diff-add[
+```scala
+def print(msg: String): Chain[Unit] =
+* Next(Print(msg, () => `()).map(Done.apply)`)
+
+def read: Chain[String] =
+* Next(Read(str => `str).map(Done.apply)`)
+```
+]
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_2_building_start.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(`Print(msg, () => ())`.map(Done.apply))
+
+def read: Chain[String] =
+  Next(`Read(str => str)`.map(Done.apply))
+```
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_2_building_map.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(Print(msg, () => ())`.map(Done.apply)`)
+
+def read: Chain[String] =
+  Next(Read(str => str)`.map(Done.apply)`)
+```
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_2_building_goal.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  `Next(`Print(msg, () => ()).map(Done.apply)`)`
+
+def read: Chain[String] =
+  `Next(`Read(str => str).map(Done.apply)`)`
+```
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_2.svg)]
+
+```scala
+def print(msg: String): Chain[Unit] =
+  Next(Print(msg, () => ()).map(Done.apply))
+
+def read: Chain[String] =
+  Next(Read(str => str).map(Done.apply))
+```
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_2.svg)]
+
+.diff-add[
+```scala
+*&#x200B;`def liftChain[A](console: Console[A]): Chain[A] =`
+* `Next(console.map(Done.apply))`
+*
+def print(msg: String): Chain[Unit] =
+  Next(Print(msg, () => ()).map(Done.apply))
+
+def read: Chain[String] =
+  Next(Read(str => str).map(Done.apply))
+```
+]
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_2.svg)]
+
+.diff-rm[
+```scala
+def liftChain[A](console: Console[A]): Chain[A] =
+  Next(console.map(Done.apply))
+
+def print(msg: String): Chain[Unit] =
+* `Next(`Print(msg, () => ())`.map(Done.apply))`
+
+def read: Chain[String] =
+* `Next(`Read(str => str)`.map(Done.apply))`
+```
+]
+
+---
+
+## Factoring out common code
+
+.center[![](img/liftChain_2.svg)]
+
+.diff-add[
+```scala
+def liftChain[A](console: Console[A]): Chain[A] =
+  Next(console.map(Done.apply))
+
+def print(msg: String): Chain[Unit] =
+* `liftChain(`Print(msg, () => ())`)`
+
+def read: Chain[String] =
+* `liftChain(`Read(str => str)`)`
+```
+]
+
+---
+
+## Composing atomic statements
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+.diff-rm[
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+*   `Next(Read(name => Done(name)))`))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+]
+
+---
+
+## Composing atomic statements
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+.diff-add[
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+*   `read`))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+]
+
+---
+
+## Composing atomic statements
+
+.center[![](img/read_flatMap_building_f.svg)]
+
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", `() =>`
+    `read`))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+
+---
+
+## Composing atomic statements
+
+.center[![](img/read_flatMap_building_start.svg)]
+
+```scala
+val ask: Chain[String] =
+  `Next(Print(`"What is your name?", () =>
+    read))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+
+---
+
+## Composing atomic statements
+
+.center[![](img/read_flatMap_building_goal.svg)]
+
+```scala
+val ask: `Chain[String]` =
+  Next(Print("What is your name?", () =>
+    read))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+
+---
+
+## Composing atomic statements
+
+.center[![](img/read_flatMap_building.svg)]
+
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    read))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+
+---
+
+## Composing atomic statements
+
+.center[![](img/read_flatMap.svg)]
+
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    read))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+
+---
+
+## Composing atomic statements
+
+.center[![](img/read_flatMap.svg)]
+
+.diff-add[
+```scala
+val ask: Chain[String] =
+* Next(Print("What is your name?", `() => ())`
+*   `.flatMap(_ => `read))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+]
+
+---
+
+## Composing atomic statements
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+.diff-rm[
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () => ())
+    .flatMap(_ => read))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+]
+
+
+---
+
+## Composing atomic statements
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+.diff-rm[
+```scala
+val ask: Chain[String] =
+* `Next(Print("What is your name?", () => ())`
+    .flatMap(_ => read))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+]
+
+---
+
+## Composing atomic statements
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+.diff-add[
+```scala
+val ask: Chain[String] =
+* `print("What is your name?")`
+    .flatMap(_ => read))
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name")
+
+val program: Chain[Unit] =
+  ask.flatMap(greet)
+```
+]
+
+---
+
+## For-comprehensions
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+```scala
+val ask: Chain[String] = for
+  _    <- print("What is your name?")
+  name <- read
+yield name
+
+val greet: String => Chain[Unit] =
+  name =>
+    print(s"Hello, $name!")
+
+val program: Chain[Unit] = for
+  name <- ask
+  _    <- greet(name)
+yield ()
 
 ```
 
-There we go: the free monad over a functor.
+---
+
+## For-comprehensions
+
+.center[![](img/chain_ask_greet_flatmap.svg)]
+
+```scala
+val program: Chain[Unit] = for
+  _    <- print("What is your name?")
+  name <- read
+  _    <- print(s"Hello, $name!")
+yield ()
+
+```
 
 ---
+
+class: center, middle
+
+# Generalising Chain
+
+---
+
+## Actual requirements
+
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(`ca.map`(_.map(f)))
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
+      case Done(a)  => f(a)
+      case Next(ca) => Next(`ca.map`(_.flatMap(f)))
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+
+---
+
+## Actual requirements
+
+```scala
+def liftChain[A](console: Console[A]): Chain[A] =
+  Next(`console.map`(Done.apply))
+
+def print(msg: String): Chain[Unit] =
+  liftChain(Print(msg, () => ()))
+
+def read: Chain[String] =
+  liftChain(Read(str => str))
+```
+
+---
+
+## Generalising Chain
+
+.diff-rm[
+```scala
+enum Chain[A]:
+* case Next(value: `Console`[Chain[A]])
+  case Done(a: A)
+```
+]
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+enum Chain[A]:
+* case Next(value: `F`[Chain[A]])
+  case Done(a: A)
+```
+]
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+*enum Chain[`F[_], `A]:
+* case Next(value: F[Chain[`F, `A]])
+  case Done(a: A)
+```
+]
+
+---
+
+## Generalising Chain
+
+```scala
+given Monad[Chain] with
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
+
+    def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
+      case Done(a)  => f(a)
+      case Next(ca) => Next(ca.map(_.flatMap(f)))
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+*given Monad[Chain`[F, _]`] with
+* extension [A](chain: Chain[`F, `A])
+*   def map[B](f: A => B): Chain[`F, `B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
+
+*   def flatMap[B](f: A => Chain[`F, `B]): Chain[`F, `B] = chain match
+      case Done(a)  => f(a)
+      case Next(ca) => Next(ca.map(_.flatMap(f)))
+
+  extension [A](a: A)
+*   def pure: Chain[`F, `A] = Done(a)
+```
+]
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+*given `[F[_]]: `Monad[Chain[F, _]] with
+  extension [A](chain: Chain[F, A])
+    def map[B](f: A => B): Chain[F, B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
+
+    def flatMap[B](f: A => Chain[F, B]): Chain[F, B] = chain match
+      case Done(a)  => f(a)
+      case Next(ca) => Next(ca.map(_.flatMap(f)))
+
+  extension [A](a: A)
+    def pure: Chain[F, A] = Done(a)
+```
+]
+
+---
+
+## Generalising Chain
+
+```scala
+given [F[_]]: Monad[Chain[F, _]] with
+  extension [A](chain: Chain[F, A])
+    def map[B](f: A => B): Chain[F, B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(`ca.map`(_.map(f)))
+
+    def flatMap[B](f: A => Chain[F, B]): Chain[F, B] = chain match
+      case Done(a)  => f(a)
+      case Next(ca) => Next(`ca.map`(_.flatMap(f)))
+
+  extension [A](a: A)
+    def pure: Chain[F, A] = Done(a)
+```
+
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+*given [F[_]`: Functor`]: Monad[Chain[F, _]] with
+  extension [A](chain: Chain[F, A])
+    def map[B](f: A => B): Chain[F, B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
+
+    def flatMap[B](f: A => Chain[F, B]): Chain[F, B] = chain match
+      case Done(a)  => f(a)
+      case Next(ca) => Next(ca.map(_.flatMap(f)))
+
+  extension [A](a: A)
+    def pure: Chain[F, A] = Done(a)
+```
+]
+
+---
+
+## Generalising Chain
+
+.diff-rm[
+```scala
+*def liftChain[A](console: `Console`[A]): Chain[A] =
+  Next(console.map(Done.apply))
+
+def print(msg: String): Chain[Unit] =
+  liftChain(Print(msg, () => ()))
+
+def read: Chain[String] =
+  liftChain(Read(str => str))
+```
+]
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+*def liftChain[A](console: `F`[A]): Chain[A] =
+  Next(console.map(Done.apply))
+
+def print(msg: String): Chain[Unit] =
+  liftChain(Print(msg, () => ()))
+
+def read: Chain[String] =
+  liftChain(Read(str => str))
+```
+]
+
+---
+
+## Generalising Chain
+
+.diff-rm[
+```scala
+*def liftChain[A](`console`: F[A]): Chain[A] =
+* Next(`console`.map(Done.apply))
+
+def print(msg: String): Chain[Unit] =
+  liftChain(Print(msg, () => ()))
+
+def read: Chain[String] =
+  liftChain(Read(str => str))
+```
+]
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+*def liftChain[A](`fa`: F[A]): Chain[A] =
+* Next(`fa`.map(Done.apply))
+
+def print(msg: String): Chain[Unit] =
+  liftChain(Print(msg, () => ()))
+
+def read: Chain[String] =
+  liftChain(Read(str => str))
+```
+]
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+*def liftChain[A](fa: F[A]): Chain[`F, `A] =
+  Next(fa.map(Done.apply))
+
+*def print(msg: String): Chain[`Console, `Unit] =
+  liftChain(Print(msg, () => ()))
+
+*def read: Chain[`Console, `String] =
+  liftChain(Read(str => str))
+```
+]
+
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+*def liftChain[`F[_], `A](fa: F[A]): Chain[F, A] =
+  Next(fa.map(Done.apply))
+
+def print(msg: String): Chain[Console, Unit] =
+  liftChain(Print(msg, () => ()))
+
+def read: Chain[Console, String] =
+  liftChain(Read(str => str))
+```
+]
+
+---
+
+## Generalising Chain
+
+```scala
+def liftChain[F[_], A](fa: F[A]): Chain[F, A] =
+  Next(`fa.map`(Done.apply))
+
+def print(msg: String): Chain[Console, Unit] =
+  liftChain(Print(msg, () => ()))
+
+def read: Chain[Console, String] =
+  liftChain(Read(str => str))
+```
+
+---
+
+## Generalising Chain
+
+.diff-add[
+```scala
+*def liftChain[F[_]`: Functor`, A](fa: F[A]): Chain[F, A] =
+  Next(fa.map(Done.apply))
+
+def print(msg: String): Chain[Console, Unit] =
+  liftChain(Print(msg, () => ()))
+
+def read: Chain[Console, String] =
+  liftChain(Read(str => str))
+```
+]
+
+---
+
+## The free monad over a functor
+
+.diff-rm[
+```scala
+*enum `Chain`[F[_], A]:
+* case Next(value: F[`Chain`[F, A]])
+  case Done(a: A)
+```
+]
+
+---
+
+## The free monad over a functor
+
+.diff-add[
+```scala
+*enum `Free`[F[_], A]:
+* case Next(value: F[`Free`[F, A]])
+  case Done(a: A)
+```
+]
+
+---
+
+## The free monad over a functor
 
 ```scala
 enum Free[F[_], A]:
-  case Pure(a: A)
-  case Flatten(unwrap: F[Free[F, A]])
-
+  case Next(value: F[Free[F, A]])
+  case Done(a: `A`)
 ```
 
 ---
 
----
+## The free monad over a functor
 
 ```scala
-val ask: ConsoleF[String] = Free.Flatten(Print("What is your name?", () =>
-  Free.Flatten(Read(name => Free.Pure(name)))))
-
-val greet: String => ConsoleF[Unit] = name => Free.Flatten(Print(s"Hello, $name", () => Free.Pure(())))
-
-val program = for
-  name <- ask
-  _    <- greet(name)
-yield name
-
+enum `Free[F[_], A]`:
+  case Next(value: F[Free[F, A]])
+  case Done(a: A)
 ```
-
-At this point, composition is working and quite nice, considering.
-What I do not like is:
-* complicated types
-* annoying initialisation
-* evaluation is very Free-centric.
-
-
-First, the initialisation.
-
 
 ---
 
+## The free monad over a functor
+
+.diff-rm[
 ```scala
-object ConsoleF:
-  def print(str: String): ConsoleF[Unit] =
-    Free.Flatten(Print(str, () => Free.Pure(())))
-
-  def read: ConsoleF[String] =
-    Free.Flatten(Read(value => Free.Pure(value)))
-
+enum Free[F[_], A]:
+  case Next(value: F[Free[F, A]])
+* case `Done`(a: A)
 ```
-
-If we pay attention to the code, a pattern emerges
+]
 
 ---
 
+## The free monad over a functor
+
+.diff-add[
 ```scala
-object ConsoleF:
-  def print(str: String): ConsoleF[Unit] =
-    Free.Flatten(Print(str, () => ()).map(Free.Pure.apply))
-
-  def read: ConsoleF[String] =
-    Free.Flatten(Read(identity).map(Free.Pure.apply))
-
+enum Free[F[_], A]:
+  case Next(value: F[Free[F, A]])
+* case `Pure`(a: A)
 ```
+]
 
 ---
+
+## The free monad over a functor
 
 ```scala
 enum Free[F[_], A]:
+  case Next(value: `F[Free[F, A]]`)
   case Pure(a: A)
-  case Flatten(unwrap: F[Free[F, A]])
-
-object Free:
-  def lift[F[_]: Functor, A](fa: F[A]): Free[F, A] =
-    Free.Flatten(fa.map(a => Free.Pure(a)))
-
 ```
 
 ---
 
+## The free monad over a functor
+
 ```scala
-object ConsoleF:
-  def print(str: String): ConsoleF[Unit] =
-    Free.lift(Print(str, () => ()))
-
-  def read: ConsoleF[String] =
-    Free.lift(Read(identity))
-
+enum `Free[F[_], A]`:
+  case Next(value: F[Free[F, A]])
+  case Pure(a: A)
 ```
 
 ---
 
+## The free monad over a functor
+
+.diff-rm[
 ```scala
-val ask: ConsoleF[String] = for
-  _    <- ConsoleF.print("What is your name?")
-  name <- ConsoleF.read
-yield name
-
-val greet: String => ConsoleF[Unit] =
-  name => ConsoleF.print(s"Hello, $name!")
-
-val program = for
-  name <- ask
-  _    <- greet(name)
-yield name
-
+enum Free[F[_], A]:
+* case `Next`(value: F[Free[F, A]])
+  case Pure(a: A)
 ```
-
-At this point, this is all very nice. Except the evaluation part, which frankly sucks.
+]
 
 ---
 
+## The free monad over a functor
+
+.diff-add[
 ```scala
-def eval[A](console: ConsoleF[A]): A = console match
-  case Free.Pure(a) => a
-  case Free.Flatten(Print(msg, next)) =>
-    println(msg)
-    eval(next())
-  case Free.Flatten(Read(next)) =>
-    val read = scala.io.StdIn.readLine
-    eval(next(read))
-
+enum Free[F[_], A]:
+* case `Flatten`(value: F[Free[F, A]])
+  case Pure(a: A)
 ```
-
-If you look at it, there's a pattern.
+]
 
 ---
 
-```scala
-def eval[F[_]: Functor, A](fa: Free[F, A], f: F[A] => A): A = fa match
-  case Free.Pure(a) => a
-  case Free.Flatten(value) => f(value.map(i => eval(i, f)))
+## The free monad over a functor
 
-def handler[A](console: Console[A]): A = console match
+.diff-rm[
+```scala
+*given [F[_]: Functor]: Monad[`Chain`[F, _]] with
+* extension [A](`chain`: `Chain`[F, A])
+*   def map[B](f: A => B): `Chain`[F, B] = `chain` match
+*     case `Done`(a)  => `Done`(f(a))
+*     case `Next`(ca) => `Next`(ca.map(_.map(f)))
+
+*   def flatMap[B](f: A => `Chain`[F, B]): `Chain`[F, B] = `chain` match
+*     case `Done`(a)  => f(a)
+*     case `Next`(ca) => `Next`(ca.map(_.flatMap(f)))
+
+  extension [A](a: A)
+*   def pure: `Chain`[F, A] = `Done`(a)
+```
+]
+
+---
+
+## The free monad over a functor
+
+.diff-add[
+```scala
+*given [F[_]: Functor]: Monad[`Free`[F, _]] with
+* extension [A](`fa`: `Free`[F, A])
+*   def map[B](f: A => B): `Free`[F, B] = `fa` match
+*     case `Pure`(a)     => `Pure`(f(a))
+*     case `Flatten`(ca) => `Flatten`(ca.map(_.map(f)))
+
+*   def flatMap[B](f: A => `Free`[F, B]): `Free`[F, B] = `fa` match
+*     case `Pure`(a)     => f(a)
+*     case `Flatten`(ca) => `Flatten`(ca.map(_.flatMap(f)))
+
+  extension [A](a: A)
+*   def pure: `Free`[F, A] = `Pure`(a)
+```
+]
+
+---
+
+## The free monad over a functor
+
+.diff-rm[
+```scala
+*def lift`Chain`[F[_]: Functor, A](fa: F[A]): `Chain`[F, A] =
+* `Next`(fa.map(`Done`.apply))
+
+*def print(msg: String): `Chain`[Console, Unit] =
+* lift`Chain`(Print(msg, () => ()))
+
+*def read: `Chain`[Console, String] =
+* lift`Chain`(Read(str => str))
+```
+]
+
+---
+
+## The free monad over a functor
+
+.diff-add[
+```scala
+*def lift`Free`[F[_]: Functor, A](fa: F[A]): `Free`[F, A] =
+* `Flatten`(fa.map(`Pure`.apply))
+
+*def print(msg: String): `Free`[Console, Unit] =
+* lift`Free`(Print(msg, () => ()))
+
+*def read: `Free`[Console, String] =
+* lift`Free`(Read(str => str))
+```
+]
+
+---
+
+## The free monad over a functor
+
+.diff-rm[
+```scala
+val program: `Chain[`Unit] = for
+  _    <- print("What is your name?")
+  name <- read
+  _    <- print(s"Hello, $name!")
+yield ()
+```
+]
+
+---
+
+## The free monad over a functor
+
+.diff-add[
+```scala
+val program: `Free[Console, `Unit] = for
+  _    <- print("What is your name?")
+  name <- read
+  _    <- print(s"Hello, $name!")
+yield ()
+```
+]
+
+---
+
+class: center, middle
+
+# Free evaluation
+
+---
+
+## TBD
+
+```scala
+def eval[A](console: Console[A]): A = console match
   case Print(msg, next) =>
     println(msg)
     next()
+
   case Read(next) =>
-    next(scala.io.StdIn.readLine())
+    val in = scala.io.StdIn.readLine()
+    next(in)
 
 ```
 
-Move `eval` in `Free`.
+---
 
-Note that this is nice, except if you're into effects encoded as monads. In that case, `eval` is very disappointing.
-But - is it not just an effectful implementation with `Id`?
 
-Turns out not quite, we get stuck in the middle because we're manipulation `G[A]` instead of `Id[A]`. We can't work with
-an `F[A] => G[A]`, because we're sometimes working with something other than `A`.
+## TBD
+
+```scala
+def evalFree[F[_], A](
+  free: Free[F, A],
+  handler: F[A] => A
+): A = free match
+  case Pure(a)        => a
+  case Flatten(value) => evalFree(handler(value))
+//   case Flatten(value) => evalFree(handler(value))
+//                                           ^
+// ⛔ Found:    (value : F[Free[F, A]])
+//   Required: F[A]
+//   
+//   where:    F is a type in method evalFree with bounds <: [_] =>> Any
+// 1 error found
+```
+
+---
+
+.center[![](img/eval_flatten.svg)]
+
+```scala
+def evalFree[F[_], A](
+  free: Free[F, A],
+  handler: F[A] => A
+): A = free match
+  case Pure(a)        => a
+  case Flatten(value) => handler(value.map(evalFree(_, handler)))
+//   case Flatten(value) => handler(value.map(evalFree(_, handler)))
+//                                  ^
+// ⛔ value map is not a member of F[Free[F, A]].
+//   An extension method was tried, but could not be fully constructed:
+//   
+//       map[A](value)[B]    failed with
+//   
+//           Found:    (value : F[Free[F, A]])
+//           Required: Chain[A²]
+//           
+//           where:    A  is a type in method evalFree
+//                     A² is a type variable
+//                     F  is a type in method evalFree with bounds <: [_] =>> Any
+//           
+//   
+//   where:    F is a type in method evalFree with bounds <: [_] =>> Any
+// 1 error found
+```
+
+---
+
+.center[![](img/eval_flatten.svg)]
+
+```scala
+def evalFree[F[_]: Functor, A](
+  free: Free[F, A],
+  handler: F[A] => A
+): A = free match
+  case Pure(a)        => a
+  case Flatten(value) => handler(value.map(evalFree(_, handler)))
+
+```
 
 ---
 
 ```scala
-def evalM[F[_]: Functor, G[_]: Monad, A](fa: Free[F, A], f: F ~> G): G[A] = fa match
-  case Free.Pure(a) => a.pure
-  case Free.Flatten(value) => f(value).flatMap(i => evalM(i, f))
+def evalM[F[_]: Functor, G[_]: Monad, A](
+  ffa    : Free[F, A],
+  handler: ???
+): G[A] = ffa match
+  case Pure(a)     => ???
+  case Flatten(fa) => ???
+```
+
+---
+
+.center[![](img/evalM_pure.svg)]
+
+```scala
+def evalM[F[_]: Functor, G[_]: Monad, A](
+  ffa    : Free[F, A],
+  handler: ???
+): G[A] = ffa match
+  case Pure(a)     => a.pure
+  case Flatten(fa) => ???
+```
+
+---
+
+.center[![](img/evalM_flatten.svg)]
+
+```scala
+def evalM[F[_]: Functor, G[_]: Monad, A](
+  ffa    : Free[F, A],
+  handler: F ~> G
+): G[A] = ffa match
+  case Pure(a)     => a.pure
+  case Flatten(fa) => handler(fa).flatMap(evalM(_, handler))
+
+```
+
+---
+
+```scala
+val handler: Console ~> Either[Throwable, _] =
+  [A] => (ca: Console[A]) => ca match
+    case Print(msg, next) =>
+      println(msg)
+      Right(next())
+
+    case Read(next) =>
+      Try(scala.io.StdIn.readLine()).toEither.map(next)
 
 ```
 
@@ -497,10 +4603,18 @@ Maybe if we rewrote `Free` but using `pure` and `flatMap` instead?
 ```scala
 enum Freer[F[_], A]:
   case Pure(a: A)
-  case FlatMap[F[_], X, A](fx: F[X], f: X => Freer[F, A]) extends Freer[F, A]
+  case FlatMap[F[_], X, A](
+    fx: F[X],
+    f : X => Freer[F, A]
+  ) extends Freer[F, A]
 
-object Freer:
-  def lift[F[_], A](fa: F[A]): Freer[F, A] = Freer.FlatMap(fa, Freer.Pure.apply)
+```
+
+---
+
+```scala
+def lift[F[_], A](fa: F[A]): Freer[F, A] =
+  FlatMap(fa, Pure.apply)
 
 ```
 
@@ -508,25 +4622,28 @@ object Freer:
 
 ```scala
 given [F[_]]: Monad[Freer[F, _]] with
-  extension [A](a: A) def pure = Freer.Pure(a)
+  extension [A](a: A) def pure = Pure(a)
 
-  extension [A](fa: Freer[F, A])
-    def map[B](f: A => B) = fa match
-      case Freer.Pure(a)              => Freer.Pure(f(a))
-      case Freer.FlatMap(state, cont) => Freer.FlatMap(state, a => cont(a).map(f))
+  extension [A](ffa: Freer[F, A])
+    def map[B](f: A => B) = ffa match
+      case Pure(a)           => Pure(f(a))
+      case FlatMap(fa, next) => FlatMap(fa, a => next(a).map(f))
 
-    def flatMap[B](f: A => Freer[F, B]) = fa match
-      case Freer.Pure(a)              => f(a)
-      case Freer.FlatMap(state, cont) => Freer.FlatMap(state, a => cont(a).flatMap(f))
+    def flatMap[B](f: A => Freer[F, B]) = ffa match
+      case Pure(a)           => f(a)
+      case FlatMap(fa, next) => FlatMap(fa, a => next(a).flatMap(f))
 
 ```
 
 ---
 
 ```scala
-def evalM[F[_]: Monad, G[_]: Monad, A](fa: Freer[F, A], f: F ~> G): G[A] = fa match
-  case Freer.Pure(a)              => a.pure
-  case Freer.FlatMap(value, cont) => f(value).flatMap(x => evalM(cont(x), (f)))
+def evalM[F[_]: Monad, G[_]: Monad, A](
+  ffa    : Freer[F, A],
+  handler: F ~> G
+): G[A] = ffa match
+  case Pure(a)           => a.pure
+  case FlatMap(fa, next) => handler(fa).flatMap(x => evalM(next(x), handler))
 
 ```
 
@@ -542,43 +4659,39 @@ enum Console[A]:
 ---
 
 ```scala
-type ConsoleF[A] = Freer[Console, A]
-
-object ConsoleF:
-  def print(value: String): ConsoleF[Unit] = Freer.lift(Print(value))
-  val read: ConsoleF[String]               = Freer.lift(Read)
+def print(value: String): Freer[Console, Unit] = lift(Print(value))
+val read: Freer[Console, String]               = lift(Read)
 
 ```
 
 ---
 
 ```scala
-val ask: ConsoleF[String] = for
-  _ <- ConsoleF.print("What is your name?")
-  name <- ConsoleF.read
+val ask: Freer[Console, String] = for
+  _    <- print("What is your name?")
+  name <- read
 yield name
 
-val greet: String => ConsoleF[Unit] = name => ConsoleF.print(s"Hello, $name!")
+val greet: String => Freer[Console, Unit] =
+  name => print(s"Hello, $name!")
 
-val program = for
+val program: Freer[Console, Unit] = for
   name <- ask
   _    <- greet(name)
-yield name
+yield ()
 
 ```
 
 ---
 
 ```scala
-import scala.util.Try
-
-val handler = new (Console ~> Either[Throwable, _]):
-  override def apply[A](ca: Console[A]) = ca match
+val handler = [A] => (ca: Console[A]) =>
+  ca match
     case Console.Print(value) =>
       Right(println(value))
 
     case Console.Read =>
-      Try(scala.io.StdIn.readLine).toEither
+      Try(scala.io.StdIn.readLine()).toEither
 
 ```
 
