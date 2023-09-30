@@ -4315,7 +4315,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 .diff-add[
 ```scala
-*def eval`Free`[A](`free`: `Free[Console, A]`): A = `free` match
+*def eval`Free`[A](`fa`: `Free[Console, A]`): A = `fa` match
   case `Pure`(a)      => a
   case `Flatten(ffa)` => eval`Free`(eval(`ffa`))
 ```
@@ -4327,7 +4327,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 .diff-rm[
 ```scala
-*def evalFree[A](free: Free[`Console`, A]): A = free match
+*def evalFree[A](fa: Free[`Console`, A]): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(eval(ffa))
 ```
@@ -4339,7 +4339,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 .diff-add[
 ```scala
-*def evalFree[`F[_],` A](free: Free[`F`, A]): A = free match
+*def evalFree[`F[_],` A](fa: Free[`F`, A]): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(eval(ffa))
 ```
@@ -4350,7 +4350,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 ## Generalizing
 
 ```scala
-def evalFree[F[_], A](free: Free[F, A]): A = free match
+def evalFree[F[_], A](fa: Free[F, A]): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(`eval`(ffa))
 ```
@@ -4361,7 +4361,7 @@ def evalFree[F[_], A](free: Free[F, A]): A = free match
 
 .diff-rm[
 ```scala
-*def evalFree[F[_], A](`free: Free[F, A]): A = free match`
+*def evalFree[F[_], A](`fa: Free[F, A]): A = fa match`
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(eval(ffa))
 ```
@@ -4374,8 +4374,8 @@ def evalFree[F[_], A](free: Free[F, A]): A = free match
 .diff-add[
 ```scala
 def evalFree[F[_], A](
-* `free   : Free[F, A]`
-*&#x200B;`): A = free match`
+* `fa      : Free[F, A]`
+*&#x200B;`): A = fa match`
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(eval(ffa))
 ```
