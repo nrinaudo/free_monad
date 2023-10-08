@@ -5267,19 +5267,6 @@ def evalFree[F[_], G[_]: Monad, A](
 
 ---
 
-```scala
-val handler = [A] => (ca: Console[A]) => ca match
-    case Print(msg, next) =>
-      println(msg)
-      Right(next())
-
-    case Read(next) =>
-      Try(scala.io.StdIn.readLine()).toEither.map(next)
-
-```
-
----
-
 ## Key takeaways
 
 --
@@ -5299,6 +5286,19 @@ name: questions
 class: center, middle
 
 # Freer (work in progress)
+
+---
+
+```scala
+val handler = [A] => (ca: Console[A]) => ca match
+    case Print(msg, next) =>
+      println(msg)
+      Right(next())
+
+    case Read(next) =>
+      Try(scala.io.StdIn.readLine()).toEither.map(next)
+
+```
 
 ---
 
