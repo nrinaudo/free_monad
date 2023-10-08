@@ -265,23 +265,12 @@ def eval(console: Console): Any = console match
 
 .diff-add[
 ```scala
-*def eval(console: Console`[A]`): Any = console match
+*def eval[`A`](console: Console`[A]`): Any = console match
   case Print(msg) => println(msg)
   case Read       => scala.io.StdIn.readLine()
 ```
 ]
 
----
-
-## GADT encoding
-
-.diff-add[
-```scala
-*def eval[`A`](console: Console[A]): Any = console match
-  case Print(msg) => println(msg)
-  case Read       => scala.io.StdIn.readLine()
-```
-]
 
 ---
 
@@ -307,6 +296,18 @@ def eval(console: Console): Any = console match
   case Read       => scala.io.StdIn.readLine()
 ```
 ]
+
+---
+
+## Key takeaways
+
+--
+
+* Console statements are encoded as a GADT.
+
+--
+
+* We know how to evaluate _a single statement_ as a pattern match.
 
 ---
 
@@ -1238,6 +1239,22 @@ def eval[A](console: Console[A]): A = console match
 
 ---
 
+## Key takeaways
+
+--
+
+* Chaining console statements is done by continuations.
+
+--
+
+* Evaluating a chain of statements is a recursive pattern match.
+
+--
+
+* We no longer know how to evaluate a single statement.
+
+---
+
 class: center, middle
 
 # Decomposing programs
@@ -2094,7 +2111,31 @@ def evalChain[A](chain: Chain[A]): `A` = ???
 
 ## Chained evaluation
 
-.center[![](img/evalChain_empty.svg)]
+.center[![](img/evalChain_done_start.svg)]
+
+```scala
+def evalChain[A](chain: Chain[A]): A = chain match
+  case Done(`a`)       => ???
+  case Next(console) => ???
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_done_goal.svg)]
+
+```scala
+def evalChain[A](chain: Chain[A]): `A` = chain match
+  case Done(a)       => ???
+  case Next(console) => ???
+```
+
+---
+
+## Chained evaluation
+
+.center[![](img/evalChain_done_solution.svg)]
 
 .diff-rm[
 ```scala
@@ -2108,7 +2149,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 ## Chained evaluation
 
-.center[![](img/evalChain_empty.svg)]
+.center[![](img/evalChain_done_solution.svg)]
 
 .diff-add[
 ```scala
@@ -2118,17 +2159,6 @@ def evalChain[A](chain: Chain[A]): A = chain match
 ```
 ]
 
----
-
-## Chained evaluation
-
-.center[![](img/evalChain_empty.svg)]
-
-```scala
-def evalChain[A](chain: Chain[A]): A = chain match
-  case Done(a)       => a
-  case Next(console) => `???`
-```
 
 ---
 
@@ -2338,6 +2368,22 @@ val greet: String => Chain[Unit] =
 
 ---
 
+## Key takeaways
+
+--
+
+* We now have a specific type for chained console statements.
+
+--
+
+* We know how to evaluate both single and chained statements.
+
+--
+
+* We have decomposed our initial program in simpler, composable chunks.
+
+---
+
 class: center, middle
 
 # Composing programs
@@ -2536,8 +2582,11 @@ val program: Chain[Unit] =
 
 ```scala
 given `Monad[Chain]` with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = ???
+
   extension [A](chain: Chain[A])
-    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+    def map[B](f: A => B): Chain[B] = ???
 
   extension [A](a: A)
     def pure: Chain[A] = ???
@@ -2549,8 +2598,11 @@ given `Monad[Chain]` with
 
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def `flatten`: Chain[A] = ???
+
   extension [A](chain: Chain[A])
-    def `flatMap`[B](f: A => Chain[B]): Chain[B] = ???
+    def map[B](f: A => B): Chain[B] = ???
 
   extension [A](a: A)
     def `pure`: Chain[A] = ???
@@ -2562,8 +2614,27 @@ given Monad[Chain] with
 
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = ???
+
   extension [A](chain: Chain[A])
-    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+    def `map`[B](f: A => B): Chain[B] = ???
+
+  extension [A](a: A)
+    def pure: Chain[A] = ???
+```
+
+---
+
+## Chain as a Monad
+
+```scala
+given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = ???
+
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = ???
 
 * extension [A](a: A)
 *   def pure: Chain[A] = ???
@@ -2636,8 +2707,11 @@ extension [A](a: A)
 .diff-rm[
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = ???
+
   extension [A](chain: Chain[A])
-    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+    def map[B](f: A => B): Chain[B] = ???
 
   extension [A](a: A)
 *   def pure: Chain[A] = `???`
@@ -2651,8 +2725,11 @@ given Monad[Chain] with
 .diff-add[
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = ???
+
   extension [A](chain: Chain[A])
-    def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+    def map[B](f: A => B): Chain[B] = ???
 
   extension [A](a: A)
 *   def pure: Chain[A] = `Done(a)`
@@ -2661,12 +2738,15 @@ given Monad[Chain] with
 
 ---
 
-## Chain.flatMap
+## Chain.map
 
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = ???
+
 * extension [A](chain: Chain[A])
-*   def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+*   def map[B](f: A => B): Chain[B] = ???
 
   extension [A](a: A)
     def pure: Chain[A] = Done(a)
@@ -2674,39 +2754,49 @@ given Monad[Chain] with
 
 ---
 
-## Chain.flatMap
+## Chain.map
 
-.center[![](img/monad_consolef_pure_flatMap_empty.svg)]
+.center[![](img/monad_chain_map_done_empty.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = ???
+  def map[B](f: A => B): Chain[B] = ???
 ```
-
 
 ---
 
-## Chain.flatMap
+## Chain.map
 
-.center[![](img/monad_consolef_pure_flatMap_empty.svg)]
+.center[![](img/monad_chain_map_done_empty.svg)]
+
+```scala
+extension [A](`chain`: Chain[A])
+  def map[B](f: A => B): Chain[B] = ???
+```
+
+---
+
+## Chain.map
+
+.center[![](img/monad_chain_map_done_empty.svg)]
 
 .diff-rm[
 ```scala
 extension [A](chain: Chain[A])
-* def flatMap[B](f: A => Chain[B]): Chain[B] = `???`
+* def map[B](f: A => B): Chain[B] = `???`
 ```
 ]
 
 ---
 
-## Chain.flatMap
+## Chain.map
 
-.center[![](img/monad_consolef_pure_flatMap_empty.svg)]
+.center[![](img/monad_chain_map_done_empty.svg)]
 
 .diff-add[
 ```scala
 extension [A](chain: Chain[A])
-* def flatMap[B](f: A => Chain[B]): Chain[B] = `chain match`
+* def map[B](f: A => B): Chain[B] = `chain match`
 *   `case Done(a)  => ???`
 *   `case Next(ca) => ???`
 ```
@@ -2714,54 +2804,79 @@ extension [A](chain: Chain[A])
 
 ---
 
-## Chain.flatMap (Done)
+## Chain.map (Done)
 
-.center[![](img/monad_consolef_pure_flatMap_start.svg)]
+.center[![](img/monad_chain_map_done_a.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
+  def map[B](f: A => B): Chain[B] = chain match
     case Done(`a`)  => ???
     case Next(ca) => ???
 ```
 
 ---
 
-## Chain.flatMap (Done)
+## Chain.map (Done)
 
-.center[![](img/monad_consolef_pure_flatMap_goal.svg)]
+.center[![](img/monad_chain_map_done_goal.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): `Chain[B]` = chain match
+  def map[B](f: A => B): `Chain[B]` = chain match
     case Done(a)  => ???
     case Next(ca) => ???
 ```
 
 ---
 
-## Chain.flatMap (Done)
+## Chain.map (Done)
 
-.center[![](img/monad_consolef_pure_flatMap.svg)]
+.center[![](img/monad_chain_map_done_f.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: `A => Chain[B]`): Chain[B] = chain match
+  def map[B](`f: A => B`): Chain[B] = chain match
     case Done(a)  => ???
     case Next(ca) => ???
 ```
 
+---
+
+## Chain.map (Done)
+
+.center[![](img/monad_chain_map_done_before_done.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => ???
+    case Next(ca) => ???
+```
 
 ---
 
-## Chain.flatMap (Done)
+## Chain.map (Done)
 
-.center[![](img/monad_consolef_pure_flatMap.svg)]
+.center[![](img/monad_chain_map_done_done.svg)]
+
+```scala
+extension [A](chain: Chain[A])
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => ???
+    case Next(ca) => ???
+```
+
+---
+
+## Chain.map (Done)
+
+.center[![](img/monad_chain_map_done_solution.svg)]
 
 .diff-rm[
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
+  def map[B](f: A => B): Chain[B] = chain match
 *   case Done(a)  => `???`
     case Next(ca) => ???
 ```
@@ -2769,200 +2884,177 @@ extension [A](chain: Chain[A])
 
 ---
 
-## Chain.flatMap (Done)
+## Chain.map (Done)
 
-.center[![](img/monad_consolef_pure_flatMap.svg)]
+.center[![](img/monad_chain_map_done_solution.svg)]
 
 .diff-add[
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-*   case Done(a)  => `f(a)`
+  def map[B](f: A => B): Chain[B] = chain match
+*   case Done(a)  => `Done(f(a))`
     case Next(ca) => ???
 ```
 ]
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_empty.svg)]
-
-```scala
-extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-    case Done(a)  => f(a)
-    case Next(ca) => ???
-```
-
----
-
-## Chain.flatMap (Next)
-
-.center[![](img/monad_consolef_impure_flatMap_start.svg)]
+.center[![](img/monad_chain_map_next_start.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-    case Done(a)  => f(a)
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
     case Next(`ca`) => ???
 ```
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_goal.svg)]
+.center[![](img/monad_chain_map_next_goal.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): `Chain[B]` = chain match
-    case Done(a)  => f(a)
+  def map[B](f: A => B): `Chain[B]` = chain match
+    case Done(a)  => Done(f(a))
     case Next(ca) => ???
 ```
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_f.svg)]
+.center[![](img/monad_chain_map_next_f.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: `A => Chain[B]`): Chain[B] = chain match
-    case Done(a)  => f(a)
+  def map[B](`f: A => B`): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
     case Next(ca) => ???
 ```
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_f.svg)]
+.center[![](img/monad_chain_map_next_f.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def `flatMap`[B](f: A => Chain[B]): Chain[B] = chain match
-    case Done(a)  => f(a)
+  def `map`[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
     case Next(ca) => ???
 ```
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_f.svg)]
+.center[![](img/monad_chain_map_next_f.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: `A => Chain[B]`): Chain[B] = chain match
-    case Done(a)  => f(a)
+  def map[B](f: `A => B`): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
     case Next(ca) => ???
 ```
-
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_flatMap.svg)]
+.center[![](img/monad_chain_map_next_lift.svg)]
 
 ```scala
 extension [A](chain: `Chain[A]`)
-  def flatMap[B](f: A => Chain[B]): `Chain[B]` = chain match
-    case Done(a)  => f(a)
+  def map[B](f: A => B): `Chain[B]` = chain match
+    case Done(a)  => Done(f(a))
     case Next(ca) => ???
 ```
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_next.svg)]
+.center[![](img/monad_chain_map_next_next.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-    case Done(a)  => f(a)
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
     case Next(ca) => ???
 ```
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_before_map.svg)]
+.center[![](img/monad_chain_map_next_before_lift.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-    case Done(a)  => f(a)
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
     case Next(ca) => ???
 ```
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_before_lift.svg)]
+.center[![](img/monad_chain_map_next_after_lift.svg)]
 
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-    case Done(a)  => f(a)
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
     case Next(ca) => ???
 ```
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_map.svg)]
-
-```scala
-extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-    case Done(a)  => f(a)
-    case Next(ca) => ???
-```
-
----
-
-## Chain.flatMap (Next)
-
-.center[![](img/monad_consolef_impure_flatMap_solution.svg)]
+.center[![](img/monad_chain_map_next_solution.svg)]
 
 .diff-rm[
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-    case Done(a)  => f(a)
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
 *   case Next(ca) => `???`
 ```
 ]
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map (Next)
 
-.center[![](img/monad_consolef_impure_flatMap_solution.svg)]
+.center[![](img/monad_chain_map_next_solution.svg)]
 
 .diff-add[
 ```scala
 extension [A](chain: Chain[A])
-  def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-    case Done(a)  => f(a)
-*   case Next(ca) => `Next(ca.map(_.flatMap(f)))`
+  def map[B](f: A => B): Chain[B] = chain match
+    case Done(a)  => Done(f(a))
+*   case Next(ca) => `Next(ca.map(_.map(f)))`
 ```
 ]
+
 ---
 
-## Chain.flatMap (Next)
+## Chain.map
 
 .diff-rm[
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = ???
+
   extension [A](chain: Chain[A])
-*   def flatMap[B](f: A => Chain[B]): Chain[B] = `???`
+*   def map[B](f: A => B): Chain[B] = `???`
 
   extension [A](a: A)
     def pure: Chain[A] = Done(a)
@@ -2971,15 +3063,307 @@ given Monad[Chain] with
 
 ---
 
-## Chain.flatMap (Next)
+## Chain.map
 
 .diff-add[
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = ???
+
   extension [A](chain: Chain[A])
-*   def flatMap[B](f: A => Chain[B]): Chain[B] = `chain match`
-*     `case Done(a)  => f(a)`
-*     `case Next(ca) => Next(ca.map(_.flatMap(f)))`
+*   def map[B](f: A => B): Chain[B] = `chain match`
+*     `case Done(a)  => Done(f(a))`
+*     `case Next(ca) => Next(ca.map(_.map(f)))`
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+]
+
+---
+
+## Chain.flatten
+
+```scala
+given Monad[Chain] with
+* extension [A](cchain: Chain[Chain[A]])
+*   def flatten: Chain[A] = ???
+
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+
+
+---
+
+## Chain.flatten
+
+.center[![](img/monad_consolef_pure_flatMap_empty.svg)]
+
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = ???
+```
+
+---
+
+## Chain.flatten
+
+.center[![](img/monad_consolef_pure_flatMap_empty.svg)]
+
+```scala
+extension [A](`cchain`: Chain[Chain[A]])
+  def flatten: Chain[A] = ???
+```
+
+
+---
+
+## Chain.flatten
+
+.center[![](img/monad_consolef_pure_flatMap_empty.svg)]
+
+.diff-rm[
+```scala
+extension [A](cchain: Chain[Chain[A]])
+* def flatten: Chain[A] = `???`
+```
+]
+
+---
+
+## Chain.flatten
+
+.center[![](img/monad_consolef_pure_flatMap_empty.svg)]
+
+.diff-add[
+```scala
+extension [A](cchain: Chain[Chain[A]])
+* def flatten: Chain[A] = `cchain match`
+*   `case Done(ca)  => ???`
+*   `case Next(cca) => ???`
+```
+]
+
+---
+
+## Chain.flatten (Done)
+
+.center[![](img/monad_consolef_pure_flatten_start.svg)]
+
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = cchain match
+    case Done(`ca`)  => ???
+    case Next(cca) => ???
+```
+
+---
+
+## Chain.flatten (Done)
+
+.center[![](img/monad_consolef_pure_flatten_goal.svg)]
+
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: `Chain[A]` = cchain match
+    case Done(ca)  => ???
+    case Next(cca) => ???
+```
+
+---
+
+## Chain.flatten (Done)
+
+.center[![](img/monad_consolef_pure_flatten.svg)]
+
+.diff-rm[
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = cchain match
+*   case Done(ca)  => `???`
+    case Next(cca) => ???
+```
+]
+
+---
+
+## Chain.flatten (Done)
+
+.center[![](img/monad_consolef_pure_flatten.svg)]
+
+.diff-add[
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = cchain match
+*   case Done(ca)  => `ca`
+    case Next(cca) => ???
+```
+]
+
+---
+
+## Chain.flatten (Next)
+
+.center[![](img/monad_chain_flatten_next_start.svg)]
+
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = cchain match
+    case Done(ca)  => ca
+    case Next(`cca`) => ???
+```
+
+---
+
+## Chain.flatten (Next)
+
+.center[![](img/monad_chain_flatten_next_goal.svg)]
+
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: `Chain[A]` = cchain match
+    case Done(ca)  => ca
+    case Next(cca) => ???
+```
+
+---
+
+## Chain.flatten (Next)
+
+.center[![](img/monad_chain_flatten_next_goal.svg)]
+
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def `flatten`: Chain[A] = cchain match
+    case Done(ca)  => ca
+    case Next(cca) => ???
+```
+
+---
+
+## Chain.flatten (Next)
+
+.center[![](img/monad_chain_flatten_next_flatten.svg)]
+
+```scala
+extension [A](cchain: `Chain[Chain[A]]`)
+  def flatten: `Chain[A]` = cchain match
+    case Done(ca)  => ca
+    case Next(cca) => ???
+```
+
+---
+
+## Chain.flatten (Next)
+
+.center[![](img/monad_chain_flatten_next_next.svg)]
+
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = cchain match
+    case Done(ca)  => ca
+    case Next(cca) => ???
+```
+
+---
+
+## Chain.flatten (Next)
+
+.center[![](img/monad_chain_flatten_next_before_lift.svg)]
+
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = cchain match
+    case Done(ca)  => ca
+    case Next(cca) => ???
+```
+
+---
+
+## Chain.flatten (Next)
+
+.center[![](img/monad_chain_flatten_next_lift.svg)]
+
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = cchain match
+    case Done(ca)  => ca
+    case Next(cca) => ???
+```
+
+---
+
+## Chain.flatten (Next)
+
+.center[![](img/monad_chain_flatten_next_solution.svg)]
+
+.diff-rm[
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = cchain match
+    case Done(ca)  => ca
+*   case Next(cca) => `???`
+```
+]
+
+---
+
+## Chain.flatten (Next)
+
+.center[![](img/monad_chain_flatten_next_solution.svg)]
+
+.diff-add[
+```scala
+extension [A](cchain: Chain[Chain[A]])
+  def flatten: Chain[A] = cchain match
+    case Done(ca)  => ca
+*   case Next(cca) => `Next(cca.map(_.flatten))`
+```
+]
+
+---
+
+## Chain.flatten
+
+.diff-rm[
+```scala
+given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+*   def flatten: Chain[A] = `???`
+
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
+
+  extension [A](a: A)
+    def pure: Chain[A] = Done(a)
+```
+]
+
+---
+
+## Chain.flatten
+
+.diff-add[
+```scala
+given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+*   def flatten: Chain[A] = `cchain match`
+*     `case Done(ca)  => ca`
+*     `case Next(cca) => Next(cca.map(_.flatten))`
+
+  extension [A](chain: Chain[A])
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
 
   extension [A](a: A)
     def pure: Chain[A] = Done(a)
@@ -2992,10 +3376,15 @@ given Monad[Chain] with
 
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = cchain match
+      case Done(ca)  => ca
+      case Next(cca) => Next(cca.`map`(_.flatten))
+
   extension [A](chain: Chain[A])
-    def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-      case Done(a)  => f(a)
-      case Next(ca) => Next(`ca.map`(_.flatMap(f)))
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.`map`(_.map(f)))
 
   extension [A](a: A)
     def pure: Chain[A] = Done(a)
@@ -3114,6 +3503,18 @@ given Functor[Console] with
 *     case Read(next)       => `Read(next andThen f)`
 ```
 ]
+
+---
+
+## Key takeaways
+
+--
+
+* `Chain` is now a `Monad`.
+
+--
+
+* `Console` is now a `Functor`.
 
 ---
 
@@ -3724,6 +4125,18 @@ yield ()
 
 ---
 
+## Key takeaways
+
+--
+
+* We can now write atomic console statements into a `Chain`.
+
+--
+
+* These compose comfortably using standard for-comprehensions.
+
+---
+
 class: center, middle
 
 # Generalising Chain
@@ -3734,10 +4147,15 @@ class: center, middle
 
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = cchain match
+      case Done(ca)  => ca
+      case Next(cca) => Next(cca.`map`(_.flatten))
+
   extension [A](chain: Chain[A])
-    def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-      case Done(a)  => f(a)
-      case Next(ca) => Next(`ca.map`(_.flatMap(f)))
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.`map`(_.map(f)))
 
   extension [A](a: A)
     def pure: Chain[A] = Done(a)
@@ -3749,7 +4167,7 @@ given Monad[Chain] with
 
 ```scala
 def liftChain[A](console: Console[A]): Chain[A] =
-  Next(`console.map`(Done.apply))
+  Next(console.`map`(Done.apply))
 
 def print(msg: String): Chain[Unit] =
   liftChain(Print(msg, () => ()))
@@ -3800,15 +4218,19 @@ enum Chain[A]:
 
 ```scala
 given Monad[Chain] with
+  extension [A](cchain: Chain[Chain[A]])
+    def flatten: Chain[A] = cchain match
+      case Done(ca)  => ca
+      case Next(cca) => Next(cca.map(_.flatten))
+
   extension [A](chain: Chain[A])
-    def flatMap[B](f: A => Chain[B]): Chain[B] = chain match
-      case Done(a)  => f(a)
-      case Next(ca) => Next(ca.map(_.flatMap(f)))
+    def map[B](f: A => B): Chain[B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
 
   extension [A](a: A)
     def pure: Chain[A] = Done(a)
 ```
-
 
 ---
 
@@ -3817,15 +4239,21 @@ given Monad[Chain] with
 .diff-add[
 ```scala
 *given Monad[Chain`[F, _]`] with
+* extension [A](cchain: Chain[`F, `Chain[`F, `A]])
+*   def flatten: Chain[`F, `A] = cchain match
+      case Done(ca)  => ca
+      case Next(cca) => Next(cca.map(_.flatten))
+
 * extension [A](chain: Chain[`F, `A])
-*   def flatMap[B](f: A => Chain[`F, `B]): Chain[`F, `B] = chain match
-      case Done(a)  => f(a)
-      case Next(ca) => Next(ca.map(_.flatMap(f)))
+*   def map[B](f: A => B): Chain[`F, `B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
 
   extension [A](a: A)
 *   def pure: Chain[`F, `A] = Done(a)
 ```
 ]
+
 
 ---
 
@@ -3834,10 +4262,15 @@ given Monad[Chain] with
 .diff-add[
 ```scala
 *given `[F[_]]: `Monad[Chain[F, _]] with
+  extension [A](cchain: Chain[F, Chain[F, A]])
+    def flatten: Chain[F, A] = cchain match
+      case Done(ca)  => ca
+      case Next(cca) => Next(cca.map(_.flatten))
+
   extension [A](chain: Chain[F, A])
-    def flatMap[B](f: A => Chain[F, B]): Chain[F, B] = chain match
-      case Done(a)  => f(a)
-      case Next(ca) => Next(ca.map(_.flatMap(f)))
+    def map[B](f: A => B): Chain[F, B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
 
   extension [A](a: A)
     def pure: Chain[F, A] = Done(a)
@@ -3850,15 +4283,19 @@ given Monad[Chain] with
 
 ```scala
 given [F[_]]: Monad[Chain[F, _]] with
+  extension [A](cchain: Chain[F, Chain[F, A]])
+    def flatten: Chain[F, A] = cchain match
+      case Done(ca)  => ca
+      case Next(cca) => Next(cca.`map`(_.flatten))
+
   extension [A](chain: Chain[F, A])
-    def flatMap[B](f: A => Chain[F, B]): Chain[F, B] = chain match
-      case Done(a)  => f(a)
-      case Next(ca) => Next(`ca.map`(_.flatMap(f)))
+    def map[B](f: A => B): Chain[F, B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.`map`(_.map(f)))
 
   extension [A](a: A)
     def pure: Chain[F, A] = Done(a)
 ```
-
 
 ---
 
@@ -3867,10 +4304,15 @@ given [F[_]]: Monad[Chain[F, _]] with
 .diff-add[
 ```scala
 *given [F[_]`: Functor`]: Monad[Chain[F, _]] with
+  extension [A](cchain: Chain[F, Chain[F, A]])
+    def flatten: Chain[F, A] = cchain match
+      case Done(ca)  => ca
+      case Next(cca) => Next(cca.map(_.flatten))
+
   extension [A](chain: Chain[F, A])
-    def flatMap[B](f: A => Chain[F, B]): Chain[F, B] = chain match
-      case Done(a)  => f(a)
-      case Next(ca) => Next(ca.map(_.flatMap(f)))
+    def map[B](f: A => B): Chain[F, B] = chain match
+      case Done(a)  => Done(f(a))
+      case Next(ca) => Next(ca.map(_.map(f)))
 
   extension [A](a: A)
     def pure: Chain[F, A] = Done(a)
@@ -4131,10 +4573,15 @@ enum Free[F[_], A]:
 .diff-rm[
 ```scala
 *given [F[_]: Functor]: Monad[`Chain`[F, _]] with
+* extension [A](`cchain`: `Chain`[F, `Chain`[F, A]])
+*   def flatten: `Chain`[F, A] = `cchain` match
+*     case `Done`(ca)  => ca
+*     case `Next`(cca) => `Next`(cca.map(_.flatten))
+
 * extension [A](`chain`: `Chain`[F, A])
-*   def flatMap[B](f: A => `Chain`[F, B]): `Chain`[F, B] = `chain` match
-*     case `Done`(a)  => f(a)
-*     case `Next`(ca) => `Next`(ca.map(_.flatMap(f)))
+*   def map[B](f: A => B): `Chain`[F, B] = `chain` match
+*     case `Done`(a)  => `Done`(f(a))
+*     case `Next`(ca) => `Next`(`ca`.map(_.map(f)))
 
   extension [A](a: A)
 *   def pure: `Chain`[F, A] = `Done`(a)
@@ -4148,10 +4595,15 @@ enum Free[F[_], A]:
 .diff-add[
 ```scala
 *given [F[_]: Functor]: Monad[`Free`[F, _]] with
+* extension [A](`ffa`: `Free`[F, `Free`[F, A]])
+*   def flatten: `Free`[F, A] = `ffa` match
+*     case `Pure`(ca)     => ca
+*     case `Flatten`(cca) => `Flatten`(cca.map(_.flatten))
+
 * extension [A](`fa`: `Free`[F, A])
-*   def flatMap[B](f: A => `Free`[F, B]): `Free`[F, B] = `fa` match
-*     case `Pure`(a)     => f(a)
-*     case `Flatten`(ca) => `Flatten`(ca.map(_.flatMap(f)))
+*   def map[B](f: A => B): `Free`[F, B] = `fa` match
+*     case `Pure`(a)     => `Pure`(f(a))
+*     case `Flatten`(ca) => `Flatten`(`ca`.map(_.map(f)))
 
   extension [A](a: A)
 *   def pure: `Free`[F, A] = `Pure`(a)
@@ -4219,6 +4671,18 @@ val program: `Free[Console, `Unit] = for
 yield ()
 ```
 ]
+
+---
+
+## Key takeaways
+
+--
+
+* We have invented `Free`, the free monad over a functor.
+
+--
+
+* Its constructors look suspiciously like the core monadic functions.
 
 ---
 
@@ -4374,7 +4838,7 @@ def evalFree[F[_], A](fa: Free[F, A]): A = fa match
 .diff-add[
 ```scala
 def evalFree[F[_], A](
-* `fa      : Free[F, A]`
+* `fa     : Free[F, A]`
 *&#x200B;`): A = fa match`
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(eval(ffa))
@@ -4388,9 +4852,9 @@ def evalFree[F[_], A](
 .diff-add[
 ```scala
 def evalFree[F[_], A](
-* free   : Free[F, A]`,`
+* fa     : Free[F, A]`,`
 * `handler: F[A] => A`
-): A = free match
+): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(eval(ffa))
 ```
@@ -4403,9 +4867,9 @@ def evalFree[F[_], A](
 .diff-rm[
 ```scala
 def evalFree[F[_], A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
   handler: F[A] => A
-): A = free match
+): A = fa match
   case Pure(a)      => a
 * case Flatten(ffa) => evalFree(`eval`(ffa))
 ```
@@ -4418,9 +4882,9 @@ def evalFree[F[_], A](
 .diff-add[
 ```scala
 def evalFree[F[_], A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
   handler: F[A] => A
-): A = free match
+): A = fa match
   case Pure(a)      => a
 * case Flatten(ffa) => evalFree(`handler`(ffa))
 ```
@@ -4433,9 +4897,9 @@ def evalFree[F[_], A](
 .diff-add[
 ```scala
 def evalFree[F[_], A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
   handler: F[A] => A
-): A = free match
+): A = fa match
   case Pure(a)      => a
 * case Flatten(ffa) => evalFree(handler(ffa)`, handler`)
 ```
@@ -4447,9 +4911,9 @@ def evalFree[F[_], A](
 
 ```scala
 def evalFree[F[_], A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
   handler: F[A] => A
-): A = free match
+): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(handler(ffa), handler)
 // ⛔ Found:    (ffa : F[Free[F, A]])
@@ -4462,9 +4926,9 @@ def evalFree[F[_], A](
 
 ```scala
 def evalFree[F[_], A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
   handler: F[A] => A
-): A = free match
+): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(handler(ffa), handler)
 // ⛔ Found:    (ffa : `F[Free[F, A]]`)
@@ -4477,9 +4941,9 @@ def evalFree[F[_], A](
 
 ```scala
 def evalFree[F[_], A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
   handler: `F[A]` => A
-): A = free match
+): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(handler(ffa), handler)
 // ⛔ Found:    (ffa : F[Free[F, A]])
@@ -4493,9 +4957,9 @@ def evalFree[F[_], A](
 .diff-rm[
 ```scala
 def evalFree[F[_], A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
 * handler: `F[A] => A`
-): A = free match
+): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(handler(ffa), handler)
 ```
@@ -4508,9 +4972,9 @@ def evalFree[F[_], A](
 .diff-add[
 ```scala
 def evalFree[F[_], A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
 * handler: `[X] => F[X] => X`
-): A = free match
+): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(handler(ffa), handler)
 ```
@@ -4518,14 +4982,14 @@ def evalFree[F[_], A](
 
 ---
 
-## TBD
+## Evaluation into some G
 
 .diff-rm[
 ```scala
 def evalFree[F[_], A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
   handler: [X] => F[X] => X
-*): `A` = free match
+*): `A` = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(handler(ffa), handler)
 ```
@@ -4533,14 +4997,14 @@ def evalFree[F[_], A](
 
 ---
 
-## TBD
+## Evaluation into some G
 
 .diff-add[
 ```scala
 *def evalFree[F[_]`, G[_]`, A](
-  free   : Free[F, A],
+  fa     : Free[F, A],
   handler: [X] => F[X] => X
-*): `G[A]` = free match
+*): `G[A]` = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(handler(ffa), handler)
 ```
@@ -4548,34 +5012,258 @@ def evalFree[F[_], A](
 
 ---
 
-## TBD
+## Evaluation into some G
 
-.center[![](img/evalM_pure.svg)]
+.center[![](img/evalM_pure_start.svg)]
 
 ```scala
-def evalM[F[_], G[_]: Monad, A](
-  ffa    : Free[F, A],
-  handler: ???
-): G[A] = ffa match
-  case Pure(a)     => a.pure
-  case Flatten(fa) => ???
+def evalFree[F[_], G[_], A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): G[A] = fa match
+  case Pure(`a`)      => a
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
 ```
 
 ---
 
-## TBD
+## Evaluation into some G
 
-.center[![](img/evalM_flatten.svg)]
+.center[![](img/evalM_pure_goal.svg)]
 
 ```scala
-def evalM[F[_], G[_]: Monad, A](
-  ffa    : Free[F, A],
-  handler: [X] => F[X] => G[X]
-): G[A] = ffa match
-  case Pure(a)     => a.pure
-  case Flatten(fa) => handler(fa).flatMap(evalM(_, handler))
-
+def evalFree[F[_], G[_], A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): `G[A]` = fa match
+  case Pure(a)      => a
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
 ```
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_pure_before_pure.svg)]
+
+```scala
+def evalFree[F[_], G[_], A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): G[A] = fa match
+  case Pure(a)      => a
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_pure_pure.svg)]
+
+.diff-rm[
+```scala
+def evalFree[F[_], G[_], A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): G[A] = fa match
+* case Pure(a)      => `a`
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+]
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_pure_pure.svg)]
+
+.diff-add[
+```scala
+def evalFree[F[_], G[_], A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): G[A] = fa match
+* case Pure(a)      => `a.pure`
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+]
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_pure_pure.svg)]
+
+.diff-add[
+```scala
+*def evalFree[F[_], G[_]`: Monad`, A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): G[A] = fa match
+  case Pure(a)      => a.pure
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+]
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_start.svg)]
+
+```scala
+def evalFree[F[_], G[_]: Monad, A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): G[A] = fa match
+  case Pure(a)      => a.pure
+  case Flatten(`ffa`) => evalFree(handler(ffa), handler)
+```
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_goal.svg)]
+
+```scala
+def evalFree[F[_], G[_]: Monad, A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): `G[A]` = fa match
+  case Pure(a)      => a.pure
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_goal.svg)]
+
+```scala
+def `evalFree`[F[_], G[_]: Monad, A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): G[A] = fa match
+  case Pure(a)      => a.pure
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_evalM.svg)]
+
+```scala
+def evalFree[F[_], G[_]: Monad, A](
+  fa     : `Free[F, A]`,
+  handler: [X] => F[X] => X
+): `G[A]` = fa match
+  case Pure(a)      => a.pure
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_flatMap.svg)]
+
+```scala
+def evalFree[F[_], G[_]: Monad, A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): G[A] = fa match
+  case Pure(a)      => a.pure
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_before_handler.svg)]
+
+```scala
+def evalFree[F[_], G[_]: Monad, A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => X
+): G[A] = fa match
+  case Pure(a)      => a.pure
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_handler.svg)]
+
+.diff-rm[
+```scala
+def evalFree[F[_], G[_]: Monad, A](
+  fa     : Free[F, A],
+* handler: [X] => F[X] => `X`
+): G[A] = fa match
+  case Pure(a)      => a.pure
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+]
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_handler.svg)]
+
+.diff-add[
+```scala
+def evalFree[F[_], G[_]: Monad, A](
+  fa     : Free[F, A],
+* handler: [X] => F[X] => `G[X]`
+): G[A] = fa match
+  case Pure(a)      => a.pure
+  case Flatten(ffa) => evalFree(handler(ffa), handler)
+```
+]
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_solution.svg)]
+
+.diff-rm[
+```scala
+def evalFree[F[_], G[_]: Monad, A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => G[X]
+): G[A] = fa match
+  case Pure(a)      => a.pure
+* case Flatten(ffa) => `evalFree(handler(ffa), handler)`
+```
+]
+
+---
+
+## Evaluation into some G
+
+.center[![](img/evalM_flatten_solution.svg)]
+
+.diff-add[
+```scala
+def evalFree[F[_], G[_]: Monad, A](
+  fa     : Free[F, A],
+  handler: [X] => F[X] => G[X]
+): G[A] = fa match
+  case Pure(a)      => a.pure
+* case Flatten(ffa) => `handler(ffa).flatMap(evalFree(_, handler))`
+```
+]
 
 ---
 
@@ -4592,19 +5280,25 @@ val handler = [A] => (ca: Console[A]) => ca match
 
 ---
 
-Consider moving `eval` and `evalM` to `Free`.
+## Key takeaways
 
-We're done. This was painful, and the result is frankly unpleasant. `Console` barely looks like `Console` anymore, and we're exposing a very inelegant continuation.
+--
 
-A hint of how to improve this is in the name: _free monad over a functor_. The continuation is what we need to make `Console` a functor - what if we could somehow write
-the free monad over any type constructor?
+* We can
 
-One avenue is to realise that if we could make `Free`, we might be able to write the free functor over a type constructor (it's a thing, called coyoneda), and by transitivity get what we wanted.
+---
 
-But there's a massive shortcut, which we'll take now: look at `Free`: it's defined in terms of `pure`, `flatten` and requires a `Functor`. There's another way to define a monad that doesn't require a functor:
-through `pure` and `flatMap`.
+class: center, middle
+name: questions
 
-Maybe if we rewrote `Free` but using `pure` and `flatMap` instead?
+[<img src="img/qr-code.svg" width="50%" height="50%"/>][Slides]
+
+[Nicolas Rinaudo] • [@NicolasRinaudo@functional.cafe]
+
+---
+class: center, middle
+
+# Freer (work in progress)
 
 ---
 
@@ -4632,8 +5326,14 @@ def lift[F[_], A](fa: F[A]): Freer[F, A] =
 given [F[_]]: Monad[Freer[F, _]] with
   extension [A](a: A) def pure = Pure(a)
 
+  extension [A](ffa: Freer[F, Freer[F, A]])
+    def flatten = ffa.flatMap(identity)
+
+
   extension [A](ffa: Freer[F, A])
-    def flatMap[B](f: A => Freer[F, B]) = ffa match
+    def map[B](f: A => B) = ffa.flatMap(a => f(a).pure)
+
+    override def flatMap[B](f: A => Freer[F, B]) = ffa match
       case Pure(a)           => f(a)
       case FlatMap(fa, next) => FlatMap(fa, a => next(a).flatMap(f))
 
@@ -4699,11 +5399,9 @@ val handler = [A] => (ca: Console[A]) =>
 
 ```
 
----
-
 [@NicolasRinaudo@functional.cafe]:https://functional.cafe/@NicolasRinaudo
 [Nicolas Rinaudo]:https://nrinaudo.github.io/
-[Slides]:https://nrinaudo.github.io/adt-not-adt/
+[Slides]:https://nrinaudo.github.io/free_monad/
     </textarea>
     <script src="js/remark.js" type="text/javascript">
     </script>
