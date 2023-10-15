@@ -90,6 +90,14 @@ def eval(console: Console) = ???
 
 ## Basic interpreter
 
+```scala
+def eval(console: `Console`) = ???
+```
+
+---
+
+## Basic interpreter
+
 .diff-rm[
 ```scala
 *def eval(console: Console) = `???`
@@ -625,19 +633,6 @@ enum Console[A]:
 
 ## Linked statements
 
-.center[![](img/before_continuation_stop_linked.svg)]
-
-```scala
-enum Console[A]:
-  case Print(msg: String, `next: Console[A]`) extends Console[A]
-  case Read(next: Console[A]) extends Console[A]
-  case Stop extends Console[Unit]
-```
-
----
-
-## Linked statements
-
 .center[![](img/before_continuation.svg)]
 
 ```scala
@@ -1090,7 +1085,22 @@ def eval[A](console: Console[A]): A = console match
 
 ## Evaluation
 
-.center[![](img/eval_chained_print_build_a.svg)]
+.center[![](img/eval_chained_print_start.svg)]
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    `println`(msg)
+
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
+```
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_print_goal.svg)]
 
 ```scala
 def eval[A](console: Console[A]): `A` = console match
@@ -1105,10 +1115,25 @@ def eval[A](console: Console[A]): `A` = console match
 
 ## Evaluation
 
-.center[![](img/eval_chained_print_build_eval.svg)]
+.center[![](img/eval_chained_print_next.svg)]
 
 ```scala
-def `eval`[A](console: Console[A]): A = console match
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, `next`) =>
+    println(msg)
+
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
+```
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_print_before_eval.svg)]
+
+```scala
+def eval[A](console: Console[A]): A = console match
   case Print(msg, next) =>
     println(msg)
 
@@ -1120,16 +1145,32 @@ def `eval`[A](console: Console[A]): A = console match
 
 ## Evaluation
 
-.center[![](img/eval_chained_print_build_next.svg)]
+.center[![](img/eval_chained_print_eval.svg)]
 
 ```scala
-def eval[A](console: Console[A]): A = console match
-  case Print(msg, `next`) =>
+def `eval`[A](console: `Console[A]`): `A` = console match
+  case Print(msg, next) =>
     println(msg)
 
   case Read(next)       =>
     scala.io.StdIn.readLine()
 ```
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_print.svg)]
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
+```
+
 
 ---
 
@@ -1153,10 +1194,26 @@ def eval[A](console: Console[A]): A = console match
 
 ## Evaluation
 
-.center[![](img/eval_chained_read_build_eval.svg)]
+.center[![](img/eval_chained_read_start.svg)]
 
 ```scala
 def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next)       =>
+    scala.io.StdIn.`readLine`()
+```
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_read_goal.svg)]
+
+```scala
+def eval[A](console: Console[A]): `A` = console match
   case Print(msg, next) =>
     println(msg)
     eval(next())
@@ -1165,28 +1222,11 @@ def eval[A](console: Console[A]): A = console match
     scala.io.StdIn.readLine()
 ```
 
-
 ---
 
 ## Evaluation
 
-.center[![](img/eval_chained_read_build_string.svg)]
-
-```scala
-def eval[A](console: Console[A]): A = console match
-  case Print(msg, next) =>
-    println(msg)
-    eval(next())
-
-  case Read(next)       =>
-    `scala.io.StdIn.readLine()`
-```
-
----
-
-## Evaluation
-
-.center[![](img/eval_chained_read_build_next.svg)]
+.center[![](img/eval_chained_read_next.svg)]
 
 ```scala
 def eval[A](console: Console[A]): A = console match
@@ -1198,6 +1238,38 @@ def eval[A](console: Console[A]): A = console match
     scala.io.StdIn.readLine()
 ```
 
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_read_eval.svg)]
+
+```scala
+def `eval`[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
+```
+
+
+---
+
+## Evaluation
+
+.center[![](img/eval_chained_read.svg)]
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(next())
+
+  case Read(next)       =>
+    scala.io.StdIn.readLine()
+```
 ---
 
 ## Evaluation
@@ -1632,7 +1704,6 @@ enum Console[A]:
 
 ## Unconstraining next
 
-.diff-rm[
 ```scala
 val ask: Console[String] =
   Print("What is your name?", () =>
@@ -1641,26 +1712,9 @@ val ask: Console[String] =
 val greet: String => Console[Unit] =
  name =>
    Print(s"Hello, $name!", () =>
-*    `Stop`)
+     Stop)
 ```
-]
 
----
-
-## Unconstraining next
-
-.diff-add[
-```scala
-val ask: Console[String] =
-  Print("What is your name?", () =>
-    Read(name => name))
-
-val greet: String => Console[Unit] =
- name =>
-   Print(s"Hello, $name!", () =>
-*    `()`)
-```
-]
 
 ---
 
@@ -1674,7 +1728,7 @@ val ask: Console[String] =
 val greet: String => Console[Unit] =
  name =>
    Print(s"Hello, $name!", () =>
-     ())
+     Stop)
 ```
 
 ---
@@ -1689,7 +1743,7 @@ val ask: Console[String] =
 val greet: String => Console[Unit] =
  name =>
    Print(s"Hello, $name!", () =>
-     ())
+     Stop)
 ```
 
 ---
@@ -1704,7 +1758,7 @@ val ask: Console[String] =
 val greet: String => Console[Unit] =
  name =>
    Print(s"Hello, $name!", () =>
-     ())
+     Stop)
 ```
 
 ---
@@ -1720,7 +1774,7 @@ val greet: String => Console[Unit] =
 val greet: String => Console[Unit] =
  name =>
    Print(s"Hello, $name!", () =>
-     ())
+     Stop)
 ```
 ]
 
@@ -1737,14 +1791,15 @@ val greet: String => Console[Unit] =
 val greet: String => Console[Unit] =
  name =>
    Print(s"Hello, $name!", () =>
-     ())
+     Stop)
 ```
 ]
 
 ---
 
-## Simplifying Console
+## Unconstraining next
 
+.diff-rm[
 ```scala
 val ask: Console[Console[String]] =
   Print("What is your name?", () =>
@@ -1753,20 +1808,26 @@ val ask: Console[Console[String]] =
 val greet: String => Console[Unit] =
  name =>
    Print(s"Hello, $name!", () =>
-     ())
-
+*    `Stop`)
 ```
+]
 
 ---
 
-## Simplifying Console
+## Unconstraining next
 
+.diff-add[
 ```scala
-enum Console[A]:
-  case Print(msg: String, next: () => A)
-  case Read(next: String => A)
-  `case Stop extends Console[Unit]`
+val ask: Console[Console[String]] =
+  Print("What is your name?", () =>
+    Read(name => name))
+
+val greet: String => Console[Unit] =
+ name =>
+   Print(s"Hello, $name!", () =>
+*    `()`)
 ```
+]
 
 ---
 
@@ -1852,21 +1913,6 @@ def eval[A](console: Console[A]): A = console match
 def eval[A](console: Console[A]): A = console match
   case Print(msg, next) =>
     println(msg)
-    eval(`next()`)
-
-  case Read(next) =>
-    val in = scala.io.StdIn.readLine()
-    eval(`next(in)`)
-```
-
----
-
-## Evaluation
-
-```scala
-def eval[A](console: Console[A]): A = console match
-  case Print(msg, next) =>
-    println(msg)
     `eval`(next())
 
   case Read(next) =>
@@ -1888,6 +1934,25 @@ def eval[A](console: `Console[A]`): A = console match
     val in = scala.io.StdIn.readLine()
     eval(next(in))
 ```
+
+
+---
+
+## Evaluation
+
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    eval(`next()`)
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    eval(`next(in)`)
+```
+
+
+
 
 ---
 
@@ -1999,19 +2064,8 @@ enum Chain:
 
 .diff-add[
 ```scala
-enum Chain:
-* `case Done(a: A)`
-```
-]
-
----
-
-## Chained evaluation
-
-.diff-add[
-```scala
 *enum Chain`[A]`:
-  case Done(a: A)
+* `case Done(a: A)`
 ```
 ]
 
@@ -2069,16 +2123,6 @@ def evalChain[A](chain: Chain[A]): A = ???
 
 ```scala
 def evalChain[A](chain: `Chain[A]`): A = ???
-```
-
----
-
-## Chained evaluation
-
-.center[![](img/evalChain_empty.svg)]
-
-```scala
-def evalChain[A](chain: Chain[A]): `A` = ???
 ```
 
 ---
@@ -2191,7 +2235,7 @@ def evalChain[A](chain: Chain[A]): `A` = chain match
 .center[![](img/evalChain_evalChain.svg)]
 
 ```scala
-def `evalChain`[A](chain: `Chain[A]`): `A` = chain match
+def `evalChain`[A](chain: Chain[A]): A = chain match
   case Done(a)       => a
   case Next(console) => ???
 ```
@@ -2770,7 +2814,7 @@ extension [A](chain: Chain[A])
 .center[![](img/monad_chain_map_done_empty.svg)]
 
 ```scala
-extension [A](`chain`: Chain[A])
+extension [A](chain: `Chain[A]`)
   def map[B](f: A => B): Chain[B] = ???
 ```
 
@@ -3118,7 +3162,7 @@ extension [A](cchain: Chain[Chain[A]])
 .center[![](img/monad_consolef_pure_flatMap_empty.svg)]
 
 ```scala
-extension [A](`cchain`: Chain[Chain[A]])
+extension [A](cchain: `Chain[Chain[A]]`)
   def flatten: Chain[A] = ???
 ```
 
@@ -3410,7 +3454,7 @@ given Functor[Console] with
 
 ```scala
 given Functor[Console] with
-  extension [A](`console: Console[A]`)
+  extension [A](console: `Console[A]`)
     def map[B](f: A => B): Console[B] = ???
 ```
 
@@ -3503,6 +3547,24 @@ given Functor[Console] with
 *     case Read(next)       => `Read(next andThen f)`
 ```
 ]
+
+---
+
+## Composing programs
+
+```scala
+val ask: Chain[String] =
+  Next(Print("What is your name?", () =>
+    Next(Read(name => Done(name)))))
+
+val greet: String => Chain[Unit] =
+  name =>
+    Next(Print(s"Hello, $name!", () =>
+      Done(())))
+
+val program: Chain[Unit] =
+  `ask.flatMap(greet)`
+```
 
 ---
 
@@ -3978,7 +4040,7 @@ val program: Chain[Unit] =
 ```scala
 val ask: Chain[String] =
   `Next(Print(`"What is your name?", () =>
-    read))
+    read`))`
 
 val greet: String => Chain[Unit] =
   name =>
@@ -4238,7 +4300,7 @@ given Monad[Chain] with
 
 .diff-add[
 ```scala
-*given Monad[Chain`[F, _]`] with
+*given `[F[_]]: `Monad[Chain`[F, _]`] with
 * extension [A](cchain: Chain[`F, `Chain[`F, `A]])
 *   def flatten: Chain[`F, `A] = cchain match
       case Done(ca)  => ca
@@ -4251,29 +4313,6 @@ given Monad[Chain] with
 
   extension [A](a: A)
 *   def pure: Chain[`F, `A] = Done(a)
-```
-]
-
-
----
-
-## Generalising Chain
-
-.diff-add[
-```scala
-*given `[F[_]]: `Monad[Chain[F, _]] with
-  extension [A](cchain: Chain[F, Chain[F, A]])
-    def flatten: Chain[F, A] = cchain match
-      case Done(ca)  => ca
-      case Next(cca) => Next(cca.map(_.flatten))
-
-  extension [A](chain: Chain[F, A])
-    def map[B](f: A => B): Chain[F, B] = chain match
-      case Done(a)  => Done(f(a))
-      case Next(ca) => Next(ca.map(_.map(f)))
-
-  extension [A](a: A)
-    def pure: Chain[F, A] = Done(a)
 ```
 ]
 
@@ -4393,31 +4432,13 @@ def read: Chain[String] =
 
 .diff-add[
 ```scala
-*def liftChain[A](fa: F[A]): Chain[`F, `A] =
+*def liftChain[`F[_], `A](fa: F[A]): Chain[`F, `A] =
   Next(fa.map(Done.apply))
 
 *def print(msg: String): Chain[`Console, `Unit] =
   liftChain(Print(msg, () => ()))
 
 *def read: Chain[`Console, `String] =
-  liftChain(Read(str => str))
-```
-]
-
-
----
-
-## Generalising Chain
-
-.diff-add[
-```scala
-*def liftChain[`F[_], `A](fa: F[A]): Chain[F, A] =
-  Next(fa.map(Done.apply))
-
-def print(msg: String): Chain[Console, Unit] =
-  liftChain(Print(msg, () => ()))
-
-def read: Chain[Console, String] =
   liftChain(Read(str => str))
 ```
 ]
@@ -4915,7 +4936,7 @@ def evalFree[F[_], A](
   handler: F[A] => A
 ): A = fa match
   case Pure(a)      => a
-  case Flatten(ffa) => evalFree(handler(ffa), handler)
+  case Flatten(ffa) => evalFree(`handler(ffa)`, handler)
 // ⛔ Found:    (ffa : F[Free[F, A]])
 //   Required: F[A]
 ```
@@ -5271,7 +5292,15 @@ def evalFree[F[_], G[_]: Monad, A](
 
 --
 
-* We can
+* We have invented `Free`, the free `Monad` over a `Functor`.
+
+--
+
+* It allows us to compose arbitrary DSLs, provided they use continuations.
+
+--
+
+* That is a big _provided_, though...
 
 ---
 
