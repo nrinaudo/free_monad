@@ -4722,67 +4722,6 @@ class: center, middle
 
 ---
 
-## Evaluating Console
-
-```scala
-def eval[A](console: Console[A]): A = console match
-  case Print(msg, next) =>
-    println(msg)
-    next()
-
-  case Read(next) =>
-    val in = scala.io.StdIn.readLine()
-    next(in)
-
-```
-
----
-
-## Evaluating Console
-
-```scala
-def eval[A](console: `Console[A]`): A = console match
-  case Print(msg, next) =>
-    println(msg)
-    next()
-
-  case Read(next) =>
-    val in = scala.io.StdIn.readLine()
-    next(in)
-```
-
----
-
-## Evaluating Console
-
-```scala
-def eval[A](console: Console[A]): `A` = console match
-  case Print(msg, next) =>
-    println(msg)
-    next()
-
-  case Read(next) =>
-    val in = scala.io.StdIn.readLine()
-    next(in)
-```
-
----
-
-## Evaluating Console
-
-```scala
-def eval[`A`](console: Console[A]): A = console match
-  case Print(msg, next) =>
-    println(msg)
-    next()
-
-  case Read(next) =>
-    val in = scala.io.StdIn.readLine()
-    next(in)
-```
-
----
-
 ## Renaming Chain
 
 ```scala
@@ -4879,11 +4818,106 @@ def evalFree[F[_], A](
 
 ## Generalizing
 
+```scala
+def eval[A](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    next()
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    next(in)
+
+```
+
+---
+
+## Generalizing
+
+```scala
+def eval[`A`](console: Console[A]): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    next()
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    next(in)
+```
+
+---
+
+## Generalizing
+
+```scala
+def eval[A](console: `Console[A]`): A = console match
+  case Print(msg, next) =>
+    println(msg)
+    next()
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    next(in)
+```
+
+---
+
+## Generalizing
+
+```scala
+def eval[A](console: Console[A]): `A` = console match
+  case Print(msg, next) =>
+    println(msg)
+    next()
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    next(in)
+```
+
+---
+
+## Generalizing
+
+.diff-rm[
+```scala
+*def eval[`A`](console: Console[`A`]): `A` = console match
+  case Print(msg, next) =>
+    println(msg)
+    next()
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    next(in)
+```
+]
+
+---
+
+## Generalizing
+
+.diff-add[
+```scala
+*def eval[`X`](console: Console[`X`]): `X` = console match
+  case Print(msg, next) =>
+    println(msg)
+    next()
+
+  case Read(next) =>
+    val in = scala.io.StdIn.readLine()
+    next(in)
+```
+]
+
+---
+
+## Generalizing
+
 .diff-add[
 ```scala
 def evalFree[F[_], A](
 * fa     : Free[F, A]`,`
-* `handler: F[A] => A`
+* `handler: [X] => F[X] => X`
 ): A = fa match
   case Pure(a)      => a
   case Flatten(ffa) => evalFree(eval(ffa))
@@ -4898,7 +4932,7 @@ def evalFree[F[_], A](
 ```scala
 def evalFree[F[_], A](
   fa     : Free[F, A],
-  handler: F[A] => A
+  handler: [X] => F[X] => X
 ): A = fa match
   case Pure(a)      => a
 * case Flatten(ffa) => evalFree(`eval`(ffa))
@@ -4913,100 +4947,10 @@ def evalFree[F[_], A](
 ```scala
 def evalFree[F[_], A](
   fa     : Free[F, A],
-  handler: F[A] => A
+  handler: [X] => F[X] => X
 ): A = fa match
   case Pure(a)      => a
-* case Flatten(ffa) => evalFree(`handler`(ffa))
-```
-]
-
----
-
-## Generalizing
-
-.diff-add[
-```scala
-def evalFree[F[_], A](
-  fa     : Free[F, A],
-  handler: F[A] => A
-): A = fa match
-  case Pure(a)      => a
-* case Flatten(ffa) => evalFree(handler(ffa)`, handler`)
-```
-]
-
----
-
-## Generalizing
-
-```scala
-def evalFree[F[_], A](
-  fa     : Free[F, A],
-  handler: F[A] => A
-): A = fa match
-  case Pure(a)      => a
-  case Flatten(ffa) => evalFree(`handler(ffa)`, handler)
-// ⛔ Found:    (ffa : F[Free[F, A]])
-//   Required: F[A]
-```
-
----
-
-## Generalizing
-
-```scala
-def evalFree[F[_], A](
-  fa     : Free[F, A],
-  handler: F[A] => A
-): A = fa match
-  case Pure(a)      => a
-  case Flatten(ffa) => evalFree(handler(ffa), handler)
-// ⛔ Found:    (ffa : `F[Free[F, A]]`)
-//   Required: F[A]
-```
-
----
-
-## Generalizing
-
-```scala
-def evalFree[F[_], A](
-  fa     : Free[F, A],
-  handler: `F[A]` => A
-): A = fa match
-  case Pure(a)      => a
-  case Flatten(ffa) => evalFree(handler(ffa), handler)
-// ⛔ Found:    (ffa : F[Free[F, A]])
-//   Required: F[A]
-```
-
----
-
-## Generalizing
-
-.diff-rm[
-```scala
-def evalFree[F[_], A](
-  fa     : Free[F, A],
-* handler: `F[A] => A`
-): A = fa match
-  case Pure(a)      => a
-  case Flatten(ffa) => evalFree(handler(ffa), handler)
-```
-]
-
----
-
-## Generalizing
-
-.diff-add[
-```scala
-def evalFree[F[_], A](
-  fa     : Free[F, A],
-* handler: `[X] => F[X] => X`
-): A = fa match
-  case Pure(a)      => a
-  case Flatten(ffa) => evalFree(handler(ffa), handler)
+* case Flatten(ffa) => evalFree(`handler`(ffa)`, handler`)
 ```
 ]
 
@@ -5353,7 +5297,7 @@ enum Freer[F[_], A]:
 ---
 
 ```scala
-def lift[F[_], A](fa: F[A]): Freer[F, A] =
+def liftFreer[F[_], A](fa: F[A]): Freer[F, A] =
   FlatMap(fa, Pure.apply)
 
 ```
@@ -5380,12 +5324,12 @@ given [F[_]]: Monad[Freer[F, _]] with
 ---
 
 ```scala
-def evalM[F[_]: Monad, G[_]: Monad, A](
+def evalFreer[F[_]: Monad, G[_]: Monad, A](
   ffa    : Freer[F, A],
   handler: [X] => F[X] => G[X]
 ): G[A] = ffa match
   case Pure(a)           => a.pure
-  case FlatMap(fa, next) => handler(fa).flatMap(x => evalM(next(x), handler))
+  case FlatMap(fa, next) => handler(fa).flatMap(x => evalFreer(next(x), handler))
 
 ```
 
@@ -5401,25 +5345,21 @@ enum Console[A]:
 ---
 
 ```scala
-def print(value: String): Freer[Console, Unit] = lift(Print(value))
-val read: Freer[Console, String]               = lift(Read)
+def print(value: String): Freer[Console, Unit] =
+  liftFreer(Print(value))
+
+val read: Freer[Console, String] =
+  liftFreer(Read)
 
 ```
 
 ---
 
 ```scala
-val ask: Freer[Console, String] = for
+val program: Freer[Console, Unit] = for
   _    <- print("What is your name?")
   name <- read
-yield name
-
-val greet: String => Freer[Console, Unit] =
-  name => print(s"Hello, $name!")
-
-val program: Freer[Console, Unit] = for
-  name <- ask
-  _    <- greet(name)
+  _    <- print(s"Hello, $name!")
 yield ()
 
 ```
