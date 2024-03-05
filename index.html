@@ -351,6 +351,10 @@ def eval(console: Console): Any = console match
 
 * We know how to evaluate _a single statement_ as a pattern match.
 
+--
+
+* We haven't solved our problem, though...
+
 ---
 
 class: center, middle
@@ -3587,6 +3591,10 @@ val program: Chain[Unit] =
 
 * `Console` is now a `Functor`.
 
+--
+
+* Our code is very verbose...
+
 ---
 
 class: center, middle
@@ -4206,6 +4214,10 @@ yield ()
 
 * These compose comfortably using standard for-comprehensions.
 
+--
+
+* It feels like `Chain` might not be specific to `Console`...
+
 ---
 
 class: center, middle
@@ -4265,20 +4277,8 @@ enum Chain[A]:
 
 .diff-add[
 ```scala
-enum Chain[A]:
-* case Next(value: `F`[Chain[A]])
-  case Done(a: A)
-```
-]
-
----
-
-## Generalising Chain
-
-.diff-add[
-```scala
 *enum Chain[`F[_], `A]:
-* case Next(value: F[Chain[`F, `A]])
+* case Next(value: `F`[Chain[A]])
   case Done(a: A)
 ```
 ]
@@ -4390,7 +4390,7 @@ def read: Chain[String] =
 
 .diff-add[
 ```scala
-*def liftChain[A](console: `F`[A]): Chain[A] =
+*def liftChain[`F[_], `A](console: F[A]): Chain[`F, `A] =
   Next(console.map(Done.apply))
 
 def print(msg: String): Chain[Unit] =
@@ -4407,7 +4407,7 @@ def read: Chain[String] =
 
 .diff-rm[
 ```scala
-*def liftChain[A](`console`: F[A]): Chain[A] =
+*def liftChain[F[_], A](`console`: F[A]): Chain[F, A] =
 * Next(`console`.map(Done.apply))
 
 def print(msg: String): Chain[Unit] =
@@ -4424,7 +4424,7 @@ def read: Chain[String] =
 
 .diff-add[
 ```scala
-*def liftChain[A](`fa`: F[A]): Chain[A] =
+*def liftChain[F[_], A](`fa`: F[A]): Chain[F, A] =
 * Next(`fa`.map(Done.apply))
 
 def print(msg: String): Chain[Unit] =
@@ -4441,7 +4441,7 @@ def read: Chain[String] =
 
 .diff-add[
 ```scala
-*def liftChain[`F[_], `A](fa: F[A]): Chain[`F, `A] =
+def liftChain[F[_], A](fa: F[A]): Chain[F, A] =
   Next(fa.map(Done.apply))
 
 *def print(msg: String): Chain[`Console, `Unit] =
@@ -4712,7 +4712,11 @@ yield ()
 
 --
 
-* Its constructors look suspiciously like the core monadic functions.
+* Its variants look suspiciously like the core monadic functions.
+
+--
+
+* We do not know how to evaluate `Free` yet...
 
 ---
 
@@ -4782,16 +4786,6 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 ## Generalizing
 
-```scala
-def evalFree[F[_], A](fa: Free[F, A]): A = fa match
-  case Pure(a)      => a
-  case Flatten(ffa) => evalFree(`eval`(ffa))
-```
-
----
-
-## Generalizing
-
 .diff-rm[
 ```scala
 *def evalFree[F[_], A](`fa: Free[F, A]): A = fa match`
@@ -4813,6 +4807,19 @@ def evalFree[F[_], A](
   case Flatten(ffa) => evalFree(eval(ffa))
 ```
 ]
+
+---
+
+## Generalizing
+
+```scala
+def evalFree[F[_], A](
+  fa     : Free[F, A]
+): A = fa match
+  case Pure(a)      => a
+  case Flatten(ffa) => evalFree(`eval`(ffa))
+```
+
 
 ---
 
@@ -5272,7 +5279,31 @@ class: center, middle
 ---
 
 ```scala
-val handler = [A] => (ca: Console[A]) => ca match
+type Id[X] = X
+
+given Monad[Id] with
+  extension [A](a: Id[Id[A]])
+    def flatten = a
+
+  extension [A](a: Id[A])
+    def map[B](f: A => B) = f(a)
+
+  extension [A](a: A)
+    def pure = a
+
+val handler: [A] => Console[A] => Id[A] =
+  [A] => (ca: Console[A]) => eval(ca)
+
+def foo =
+  evalFree(program, handler)
+
+```
+
+---
+
+```scala
+val handler: [A] => Console[A] => Either[Throwable, A] =
+  [A] => (ca: Console[A]) => ca match
     case Print(msg, next) =>
       println(msg)
       Right(next())
