@@ -507,35 +507,7 @@ enum Console[A]:
 ```scala
 enum Console[A]:
   case Print(msg: String) extends Console[Unit]
-* case Read`(next: Console[Unit])` extends Console[String]
-```
-]
-
----
-
-## Linked statements
-
-.center[![](img/before_continuation_step_5_next.svg)]
-
-.diff-rm[
-```scala
-enum Console[A]:
-  case Print(msg: String) extends Console[Unit]
-* case Read(next: Console[`Unit`]) extends Console[String]
-```
-]
-
----
-
-## Linked statements
-
-.center[![](img/before_continuation_step_5_next.svg)]
-
-.diff-add[
-```scala
-enum Console[A]:
-  case Print(msg: String) extends Console[Unit]
-* case Read(next: Console[`A`]) extends Console[String]
+* case Read`(next: Console[A])` extends Console[String]
 ```
 ]
 
