@@ -1308,7 +1308,7 @@ def eval[A](console: Console[A]): A = console match
 
 --
 
-* We no longer know how to evaluate a single statement.
+* This is not very reusable, though...
 
 ---
 
@@ -3571,7 +3571,7 @@ val program: Chain[Unit] =
 
 class: center, middle
 
-# Composing atomic statements
+# Extracting atomic statements
 
 ---
 
@@ -4676,29 +4676,7 @@ yield ()
 
 ---
 
-## Key takeaways
-
---
-
-* We have invented `Free`, the free monad over a functor.
-
---
-
-* Its variants look suspiciously like the core monadic functions.
-
---
-
-* We do not know how to evaluate `Free` yet...
-
----
-
-class: center, middle
-
-# Free evaluation
-
----
-
-## Renaming Chain
+## Evaluation
 
 ```scala
 def evalChain[A](chain: Chain[A]): A = chain match
@@ -4708,7 +4686,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 ---
 
-## Renaming Chain
+## Evaluation
 
 .diff-rm[
 ```scala
@@ -4720,7 +4698,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 ---
 
-## Renaming Chain
+## Evaluation
 
 .diff-add[
 ```scala
@@ -4732,7 +4710,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 ---
 
-## Generalizing
+## Evaluation
 
 .diff-rm[
 ```scala
@@ -4744,7 +4722,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 ---
 
-## Generalizing
+## Evaluation
 
 .diff-add[
 ```scala
@@ -4756,7 +4734,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 ---
 
-## Generalizing
+## Evaluation
 
 .diff-rm[
 ```scala
@@ -4768,7 +4746,7 @@ def evalChain[A](chain: Chain[A]): A = chain match
 
 ---
 
-## Generalizing
+## Evaluation
 
 .diff-add[
 ```scala
@@ -4782,7 +4760,7 @@ def evalFree[F[_], A](
 
 ---
 
-## Generalizing
+## Evaluation
 
 ```scala
 def evalFree[F[_], A](
@@ -4795,7 +4773,7 @@ def evalFree[F[_], A](
 
 ---
 
-## Generalizing
+## Evaluation
 
 ```scala
 def eval[A](console: Console[A]): A = console match
@@ -4811,7 +4789,7 @@ def eval[A](console: Console[A]): A = console match
 
 ---
 
-## Generalizing
+## Evaluation
 
 ```scala
 def eval[`A`](console: Console[A]): A = console match
@@ -4826,7 +4804,7 @@ def eval[`A`](console: Console[A]): A = console match
 
 ---
 
-## Generalizing
+## Evaluation
 
 ```scala
 def eval[A](console: `Console[A]`): A = console match
@@ -4841,7 +4819,7 @@ def eval[A](console: `Console[A]`): A = console match
 
 ---
 
-## Generalizing
+## Evaluation
 
 ```scala
 def eval[A](console: Console[A]): `A` = console match
@@ -4856,7 +4834,7 @@ def eval[A](console: Console[A]): `A` = console match
 
 ---
 
-## Generalizing
+## Evaluation
 
 .diff-rm[
 ```scala
@@ -4873,7 +4851,7 @@ def eval[A](console: Console[A]): `A` = console match
 
 ---
 
-## Generalizing
+## Evaluation
 
 .diff-add[
 ```scala
@@ -4890,7 +4868,7 @@ def eval[A](console: Console[A]): `A` = console match
 
 ---
 
-## Generalizing
+## Evaluation
 
 .diff-add[
 ```scala
@@ -4905,7 +4883,7 @@ def evalFree[F[_], A](
 
 ---
 
-## Generalizing
+## Evaluation
 
 .diff-rm[
 ```scala
@@ -4920,7 +4898,7 @@ def evalFree[F[_], A](
 
 ---
 
-## Generalizing
+## Evaluation
 
 .diff-add[
 ```scala
