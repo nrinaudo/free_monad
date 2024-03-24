@@ -1,0 +1,23 @@
+digraph {
+    rankdir=LR
+
+    Start[class="extremity"]
+    Goal[class="extremity"]
+
+    FreeFA[label="Free[F, A]" group="bottom" style="invis"]
+    GA[label="G[A]" class="goal" group="up"]
+    FFreeFA[label="F[Free[F, A]]" class="start,disabled" group="up"]
+    GFreeFA[label="G[Free[F, A]]" group="up" style="invis"]
+
+    {
+        rank=same
+        GFreeFA -> FreeFA[dir="back" class="lift" style="invis"]
+    }
+
+    GFreeFA -> GA[label="_.flatMap(evalFree)" style="invis"]
+    FFreeFA -> GFreeFA[label="handler" style="invis"]
+    FreeFA -> GA[label="evalFree" weight="0" style="invis"]
+
+    Start -> FFreeFA[class="start,disabled"]
+    GA -> Goal[class="goal"]
+}
